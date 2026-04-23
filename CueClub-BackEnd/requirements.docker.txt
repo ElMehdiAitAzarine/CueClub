@@ -1,0 +1,9 @@
+Django>=5.0
+djangorestframework
+django-cors-headers
+passlib[pbkdf2_sha256]
+pymysql
+qrcode[pil]
+python-dotenv
+whitenoise
+gunicorn

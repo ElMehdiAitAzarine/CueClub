@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mariadb:11.4
+    restart: always
+    environment:
+      MARIADB_DATABASE: nuxe0125_CueClubDB
+      MARIADB_USER: nuxe0125_MehdiAitAzarine
+      MARIADB_PASSWORD: Mehdi-Ismail@007
+      MARIADB_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: 
+      context: ./CueClub-BackEnd
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - DJANGO_SETTINGS_MODULE=core_project.settings
+      - DATABASE_HOST=db
+      - DATABASE_NAME=nuxe0125_CueClubDB
+      - DATABASE_USER=nuxe0125_MehdiAitAzarine
+      - DATABASE_PASSWORD=Mehdi-Ismail@007
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./CueClub-BackEnd/uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./CueClub-FrontEnd
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

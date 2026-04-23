@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'core_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nuxe0125_CueClubDB', # Change with your ACTUAL MariaDB database name
-        'USER': 'nuxe0125_MehdiAitAzarine',           # Change with your ACTUAL MariaDB username
-        'PASSWORD': 'Mehdi-Ismail@007', # Change with your ACTUAL MariaDB password
-        'HOST': '127.0.0.1',           # Change if your MariaDB is not local
-        'PORT': '3306',                # MariaDB default port
+        'NAME': os.environ.get('DATABASE_NAME', 'nuxe0125_CueClubDB'),
+        'USER': os.environ.get('DATABASE_USER', 'nuxe0125_MehdiAitAzarine'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'Mehdi-Ismail@007'),
+        'HOST': os.environ.get('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DATABASE_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',

@@ -1,0 +1,7 @@
+1. db pass: mehdi-ismail-2026
+
+2. The "vetted" Web Workaround (For Attendance/Verification)
+If you just need a unique, permanent ID (not specifically the IMEI) and want it to work in a browser, use a Persistent Cookie or Local Storage GUID.
+The First Scan: The first time they scan, your website generates a long, unique random ID (a GUID) and saves it in the phone's "Local Storage."
+The Subsequent Scans: Every time they scan after that, the browser sends that same GUID to your backend.
+Is it the IMEI? No. But it identifies that specific phone/browser instance just as well for 99% of use cases.

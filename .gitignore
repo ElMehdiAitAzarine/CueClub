@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+*/node_modules/
+venv/
+*/venv/
+env/
+*/env/
+.env
+*/.env
+*.env.*
+!*.env.example
+
+# Build outputs
+.next/
+*/.next/
+build/
+*/build/
+dist/
+*/dist/
+out/
+*/out/
+
+# Python
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+*.log
+*.sqlite3
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.rar
+
+# OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

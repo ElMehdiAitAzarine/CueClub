@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Loader2, Users, Gamepad2, PlayCircle, Clock, QrCode, Filter, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSectionTheme } from '@/hooks/use-section-theme'
+import ThemeToggle from '@/components/ThemeToggle'
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -45,6 +47,7 @@ interface TableStatus {
 
 export default function ScreenPage() {
     const router = useRouter()
+    const { theme, toggleTheme, isDark } = useSectionTheme('screen')
     const [tables, setTables] = useState<TableStatus[]>([])
     const [qrToken, setQrToken] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
@@ -55,6 +58,21 @@ export default function ScreenPage() {
     const [loginForm, setLoginForm] = useState({ username: '', password: '' })
     const [isLoggingIn, setIsLoggingIn] = useState(false)
     const pollInterval = useRef<NodeJS.Timeout | null>(null)
+
+    const displayedTables = tables.filter(table => selectedTableIds.includes('all') || selectedTableIds.includes(table.id.toString()));
+
+    const updateSelectedTables = (ids: string[]) => {
+        setSelectedTableIds(ids);
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (ids.includes('all')) {
+                params.delete('tables');
+            } else {
+                params.set('tables', ids.join(','));
+            }
+            window.history.replaceState(null, '', `?${params.toString()}`);
+        }
+    }
 
     useEffect(() => {
         const token = localStorage.getItem('cueclub_admin_token')
@@ -71,6 +89,16 @@ export default function ScreenPage() {
             if (pollInterval.current) clearInterval(pollInterval.current)
         }
     }, [])
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const tablesParam = params.get('tables');
+            if (tablesParam) {
+                setSelectedTableIds(tablesParam.split(','));
+            }
+        }
+    }, []);
 
     const fetchData = async () => {
         try {
@@ -120,7 +148,7 @@ export default function ScreenPage() {
 
     if (loading) {
         return (
-            <div className="dark min-h-screen bg-black flex items-center justify-center">
+            <div className={cn("min-h-screen flex items-center justify-center", isDark ? 'dark bg-black' : 'light-mode bg-[#F0EDE6]')}>
                 <Loader2 className="animate-spin text-primary" size={64} />
             </div>
         )
@@ -128,13 +156,13 @@ export default function ScreenPage() {
 
     if (!isLoggedIn) {
         return (
-            <div className="dark min-h-screen bg-black flex items-center justify-center p-4">
-                <Card className="w-full max-w-md bg-white/[0.02] border-white/10 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-2xl">
+            <div className={cn("min-h-screen flex items-center justify-center p-4", isDark ? 'dark bg-black' : 'light-mode bg-[#F0EDE6]')}>
+                <Card className={cn("w-full max-w-md backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-2xl", isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white/70 border-[#D5D0C8]')}>
                     <div className="text-center mb-8">
                         <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary mx-auto mb-6">
                             <Gamepad2 size={40} />
                         </div>
-                        <h2 className="text-3xl font-black uppercase tracking-tighter italic text-white">Terminal Access</h2>
+                        <h2 className={cn("text-3xl font-black uppercase tracking-tighter italic", isDark ? 'text-white' : 'text-[#1A1A1A]')}>Terminal Access</h2>
                         <p className="text-muted-foreground font-black uppercase tracking-widest text-[10px] mt-2 italic opacity-60">Establish Connection to Mainframe</p>
                     </div>
                     <form onSubmit={handleLogin} className="space-y-4">
@@ -142,7 +170,7 @@ export default function ScreenPage() {
                             placeholder="Admin Node Identifier"
                             value={loginForm.username}
                             onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                            className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 font-black uppercase tracking-widest text-xs text-white placeholder:text-white/20 focus:border-primary/50 transition-all outline-none"
+                            className={cn("w-full h-14 rounded-2xl px-6 font-black uppercase tracking-widest text-xs focus:border-primary/50 transition-all outline-none", isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-[#EFECE5] border-[#D5D0C8] text-[#1A1A1A] placeholder:text-[#B0AAA0]')}
                             required
                         />
                         <input
@@ -150,7 +178,7 @@ export default function ScreenPage() {
                             placeholder="Access Authorization Key"
                             value={loginForm.password}
                             onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                            className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 font-black uppercase tracking-widest text-xs text-white placeholder:text-white/20 focus:border-primary/50 transition-all outline-none"
+                            className={cn("w-full h-14 rounded-2xl px-6 font-black uppercase tracking-widest text-xs focus:border-primary/50 transition-all outline-none", isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-[#EFECE5] border-[#D5D0C8] text-[#1A1A1A] placeholder:text-[#B0AAA0]')}
                             required
                         />
                         <Button
@@ -167,7 +195,7 @@ export default function ScreenPage() {
     }
 
     return (
-        <div className="dark min-h-screen bg-[#050505] text-white p-12 overflow-hidden flex flex-col h-screen">
+        <div className={cn("min-h-screen p-12 overflow-hidden flex flex-col h-screen", isDark ? 'dark bg-[#050505] text-white' : 'light-mode bg-[#F7F5F0] text-[#1A1A1A]')}>
             {/* Header */}
             <div className="flex justify-between items-end mb-16 shrink-0">
                 <div className="flex items-center gap-10">
@@ -180,6 +208,7 @@ export default function ScreenPage() {
                     </div>
                 </div>
                 <div className="text-right">
+                    <ThemeToggle theme={theme} onToggle={toggleTheme} size="md" className="mb-4 ml-auto" />
                     <p className="text-7xl font-mono font-black tabular-nums leading-none mb-2">
                         {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -189,16 +218,16 @@ export default function ScreenPage() {
 
             <div className="flex-1 flex gap-8 min-h-0">
                 {/* Left Section: QR Code */}
-                <div className="w-[38%] flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-[4rem] p-16 relative overflow-hidden">
+                <div className={cn("w-[38%] flex flex-col items-center justify-center border rounded-[4rem] p-16 relative overflow-hidden", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/60 border-[#D5D0C8]')}>
                     <div className="absolute inset-0 bg-primary/10 blur-[150px] rounded-full -translate-x-1/2 -translate-y-1/2 opacity-40" />
 
                     <div className="relative z-10 text-center space-y-12 w-full">
                         <div className="relative p-12 inline-block mx-auto group">
                             {/* Camera Scan Corners */}
-                            <div className="absolute top-0 left-0 w-24 h-24 border-t-[12px] border-l-[12px] border-white rounded-tl-[3rem] transition-all duration-500 group-hover:scale-110" />
-                            <div className="absolute top-0 right-0 w-24 h-24 border-t-[12px] border-r-[12px] border-white rounded-tr-[3rem] transition-all duration-500 group-hover:scale-110" />
-                            <div className="absolute bottom-0 left-0 w-24 h-24 border-b-[12px] border-l-[12px] border-white rounded-bl-[3rem] transition-all duration-500 group-hover:scale-110" />
-                            <div className="absolute bottom-0 right-0 w-24 h-24 border-b-[12px] border-r-[12px] border-white rounded-br-[3rem] transition-all duration-500 group-hover:scale-110" />
+                            <div className={cn("absolute top-0 left-0 w-24 h-24 border-t-[12px] border-l-[12px] rounded-tl-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
+                            <div className={cn("absolute top-0 right-0 w-24 h-24 border-t-[12px] border-r-[12px] rounded-tr-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
+                            <div className={cn("absolute bottom-0 left-0 w-24 h-24 border-b-[12px] border-l-[12px] rounded-bl-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
+                            <div className={cn("absolute bottom-0 right-0 w-24 h-24 border-b-[12px] border-r-[12px] rounded-br-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
 
                             {/* Scanning Line Animation */}
                             <div className="absolute inset-x-12 top-12 h-1 bg-gradient-to-r from-transparent via-primary to-transparent animate-[scan_3s_ease-in-out_infinite] z-20 shadow-[0_0_15px_rgba(234,88,12,0.8)]" />
@@ -222,7 +251,7 @@ export default function ScreenPage() {
                             <h2 className="text-6xl font-black uppercase tracking-tight">Scan to Join</h2>
 
                             <div className="flex justify-center gap-8 pt-8">
-                                <div className="flex items-center gap-4 bg-white/5 px-8 py-4 rounded-full border border-white/10">
+                                <div className={cn("flex items-center gap-4 px-8 py-4 rounded-full border", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
                                     <QrCode size={32} className="text-primary" />
                                     <span className="text-lg font-bold uppercase tracking-widest">Instant Sync</span>
                                 </div>
@@ -241,7 +270,7 @@ export default function ScreenPage() {
                         <div className="flex items-center gap-10">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="h-14 bg-white/5 border-white/10 rounded-2xl text-xl font-bold uppercase tracking-wider focus:ring-primary/50 flex items-center gap-4 px-8 border-none shadow-2xl">
+                                    <Button variant="outline" className={cn("h-14 rounded-2xl text-xl font-bold uppercase tracking-wider focus:ring-primary/50 flex items-center gap-4 px-8 border-none shadow-2xl", isDark ? 'bg-white/5' : 'bg-[#E8E4DC] text-[#1A1A1A]')}>
                                         <Filter size={24} className="text-primary" />
                                         <span>
                                             {selectedTableIds.includes('all')
@@ -251,28 +280,8 @@ export default function ScreenPage() {
                                         </span>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-[320px] bg-[#0A0A0A] border-white/10 text-white rounded-[2rem] p-4 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                                <DropdownMenuContent align="end" className={cn("w-[320px] rounded-[2rem] p-4", isDark ? 'bg-[#0A0A0A] border-white/10 text-white shadow-[0_0_50px_rgba(0,0,0,0.5)]' : 'bg-[#EFECE5] border-[#D5D0C8] text-[#1A1A1A] shadow-xl')}>
                                     <div className="space-y-6">
-                                        <div>
-                                            <DropdownMenuLabel className="text-primary font-black uppercase text-sm tracking-[0.2em] px-2 mb-2 flex items-center gap-3">
-                                                <LayoutGrid size={16} />
-                                                Layout Options
-                                            </DropdownMenuLabel>
-                                            <DropdownMenuRadioGroup
-                                                value={displayCount.toString()}
-                                                onValueChange={(val) => {
-                                                    setDisplayCount(parseInt(val));
-                                                    setSelectedTableIds(['all']);
-                                                    setCurrentPage(0);
-                                                }}
-                                            >
-                                                <DropdownMenuRadioItem value="1" className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3">Show 1 per Page</DropdownMenuRadioItem>
-                                                <DropdownMenuRadioItem value="2" className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3">Show 2 per Page</DropdownMenuRadioItem>
-                                                <DropdownMenuRadioItem value="4" className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3">Show 4 per Page</DropdownMenuRadioItem>
-                                            </DropdownMenuRadioGroup>
-                                        </div>
-
-                                        <DropdownMenuSeparator className="bg-white/5" />
 
                                         <div>
                                             <DropdownMenuLabel className="text-primary font-black uppercase text-sm tracking-[0.2em] px-2 mb-2 flex items-center gap-3">
@@ -283,7 +292,7 @@ export default function ScreenPage() {
                                                 <DropdownMenuCheckboxItem
                                                     checked={selectedTableIds.includes('all')}
                                                     onCheckedChange={(checked) => {
-                                                        if (checked) setSelectedTableIds(['all']);
+                                                        if (checked) updateSelectedTables(['all']);
                                                         setCurrentPage(0);
                                                     }}
                                                     className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3"
@@ -300,7 +309,7 @@ export default function ScreenPage() {
                                                             else next = next.filter(id => id !== table.id.toString());
 
                                                             if (next.length === 0) next = ['all'];
-                                                            setSelectedTableIds(next);
+                                                            updateSelectedTables(next);
                                                             setCurrentPage(0);
                                                         }}
                                                         className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3"
@@ -322,52 +331,37 @@ export default function ScreenPage() {
                     </div>
 
                     <div className="flex flex-col gap-14 flex-1 min-h-0 overflow-y-auto pr-6 custom-scrollbar transition-all duration-500 pb-16">
-                        {/* Group tables by Game Type for better organization */}
-                        {Object.entries(
-                            tables
-                                .filter(table => selectedTableIds.includes('all') || selectedTableIds.includes(table.id.toString()))
-                                .reduce((acc, table) => {
-                                    const type = table.game_type || 'General';
-                                    if (!acc[type]) acc[type] = [];
-                                    acc[type].push(table);
-                                    return acc;
-                                }, {} as Record<string, TableStatus[]>)
-                        ).map(([gameType, typeTables]) => (
-                            <div key={gameType} className="flex-1 flex flex-col space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700 min-h-0">
-                                <div className="flex items-center gap-6 px-6 shrink-0">
-                                    <h4 className="text-3xl font-black uppercase tracking-[0.5em] text-primary italic whitespace-nowrap">{gameType}</h4>
-                                    <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                                </div>
-
-                                <div className="flex flex-wrap gap-10 flex-1 min-h-0">
-                                    {typeTables.map(table => (
-                                        <div key={table.id} className="flex-1 min-w-[450px] bg-white/[0.02] border-2 border-white/5 rounded-[3.5rem] p-8 flex flex-col gap-8 hover:border-primary/20 transition-all backdrop-blur-md relative overflow-hidden group min-h-[450px] max-h-[600px] shadow-2xl">
+                        <div className="flex flex-wrap gap-10 flex-1 min-h-0">
+                            {displayedTables
+                                .slice(currentPage * displayCount, (currentPage + 1) * displayCount)
+                                .map(table => (
+                                        <div key={table.id} className={cn("flex-1 min-w-[450px] border-2 rounded-[3.5rem] p-8 flex flex-col gap-8 hover:border-primary/20 transition-all backdrop-blur-md relative overflow-hidden group min-h-[450px] max-h-[600px]", isDark ? 'bg-white/[0.02] border-white/5 shadow-2xl' : 'bg-[#EFECE5]/70 border-[#D5D0C8] shadow-lg shadow-black/5')}>
                                             <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                                             {/* Card Header */}
                                             <div className="flex justify-between items-center relative z-10 shrink-0">
                                                 <div className="flex items-center gap-6">
-                                                    <div className="w-20 h-20 bg-white/5 rounded-[1.8rem] flex items-center justify-center text-primary border border-white/10 shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                                    <div className={cn("w-20 h-20 rounded-[1.8rem] flex items-center justify-center text-primary border shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
                                                         {table.game_image ? (
                                                             <img src={table.game_image} alt={table.game_type} className="w-full h-full object-cover rounded-[1.8rem]" />
                                                         ) : (
                                                             <Gamepad2 size={36} />
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <h5 className="text-5xl font-black text-white italic tracking-tighter leading-none mb-2">#{table.number}</h5>
-                                                        <p className="text-sm font-black uppercase tracking-[0.3em] text-primary/60">{table.name}</p>
+                                                    <div className="flex items-baseline gap-4 mb-2">
+                                                        <h5 className={cn("text-5xl font-black italic tracking-tighter leading-none", isDark ? 'text-white' : 'text-[#1A1A1A]')}>#{table.number}</h5>
+                                                        <p className="text-2xl font-black uppercase tracking-wide text-primary">{table.name}</p>
                                                     </div>
                                                 </div>
-                                                <div className="bg-white/5 px-5 py-2.5 rounded-2xl border border-white/10">
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{table.game_type}</span>
+                                                <div className={cn("px-5 py-2.5 rounded-2xl border", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
+                                                    <span className={cn("text-[10px] font-black uppercase tracking-[0.2em]", isDark ? 'text-white/40' : 'text-[#6B6560]')}>{table.game_type}</span>
                                                 </div>
                                             </div>
 
                                             {/* Players List - Scrollable with Design Scrollbar */}
                                             <div className="flex-1 min-h-0 relative z-10">
                                                 {table.players.length === 0 ? (
-                                                    <div className="h-full flex flex-col items-center justify-center bg-white/[0.01] rounded-[2.5rem] border-4 border-dashed border-white/5 p-8 opacity-40">
+                                                    <div className={cn("h-full flex flex-col items-center justify-center rounded-[2.5rem] border-4 border-dashed p-8 opacity-40", isDark ? 'bg-white/[0.01] border-white/5' : 'bg-[#E8E4DC]/50 border-[#D5D0C8]')}>
                                                         <PlayCircle size={48} className="mb-4 text-white/10" />
                                                         <p className="text-xl font-black uppercase tracking-[0.2em] italic text-center text-white/20">Operational Standby</p>
                                                     </div>
@@ -386,13 +380,13 @@ export default function ScreenPage() {
                                                                         "flex items-center justify-between py-3.5 px-6 rounded-2xl border-2 transition-all duration-500",
                                                                         player.status === 'playing' ? "bg-primary/20 border-primary/40 shadow-lg shadow-primary/5" :
                                                                             player.status === 'notified' ? "bg-blue-500/15 border-blue-500/30 animate-pulse text-blue-400" :
-                                                                                "bg-white/[0.03] border-white/5"
+                                                                                isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]"
                                                                     )}
                                                                 >
                                                                     <div className="flex items-center gap-5">
                                                                         <div className={cn(
                                                                             "w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-sm font-black shadow-md",
-                                                                            player.status === 'playing' ? "bg-primary text-white" : "bg-white/10 text-white/40"
+                                                                            player.status === 'playing' ? "bg-primary text-white" : isDark ? "bg-white/10 text-white/40" : "bg-[#D5D0C8] text-[#6B6560]"
                                                                         )}>
                                                                             {player.status === 'playing' ? '🎮' : `#${player.daily_number}`}
                                                                         </div>
@@ -418,7 +412,7 @@ export default function ScreenPage() {
                                                                     </div>
 
                                                                     {player.recent_orders.length > 0 && (
-                                                                        <div className="hidden sm:block bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                                                                        <div className={cn("hidden sm:block px-3 py-1.5 rounded-xl border", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
                                                                             <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
                                                                                 {player.recent_orders[0].name}
                                                                             </span>
@@ -434,32 +428,30 @@ export default function ScreenPage() {
                                             </div>
                                         </div>
                                     ))}
-                                </div>
-                            </div>
-                        ))}
+                        </div>
                     </div>
 
                     {/* Pagination Controls */}
-                    {selectedTableIds.includes('all') && tables.length > displayCount && (
+                    {displayedTables.length > displayCount && (
                         <div className="flex justify-center gap-8 mt-12 mb-6">
                             <Button
                                 variant="outline"
                                 onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
                                 disabled={currentPage === 0}
-                                className="bg-white/5 border-white/10 rounded-full w-20 h-20 hover:bg-white/10 transition-all border-none"
+                                className={cn("rounded-full w-20 h-20 transition-all border-none", isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-[#E8E4DC] hover:bg-[#D5D0C8] text-[#1A1A1A]')}
                             >
                                 <ChevronLeft size={48} />
                             </Button>
                             <div className="flex items-center gap-4 text-3xl font-black uppercase tracking-[0.3em]">
                                 <span className="text-primary">{currentPage + 1}</span>
                                 <span className="text-white/10">|</span>
-                                <span className="text-white/40">{Math.ceil(tables.length / displayCount)}</span>
+                                <span className="text-white/40">{Math.ceil(displayedTables.length / displayCount)}</span>
                             </div>
                             <Button
                                 variant="outline"
-                                onClick={() => setCurrentPage(p => Math.min(Math.ceil(tables.length / displayCount) - 1, p + 1))}
-                                disabled={currentPage >= Math.ceil(tables.length / displayCount) - 1}
-                                className="bg-white/5 border-white/10 rounded-full w-20 h-20 hover:bg-white/10 transition-all border-none"
+                                onClick={() => setCurrentPage(p => Math.min(Math.ceil(displayedTables.length / displayCount) - 1, p + 1))}
+                                disabled={currentPage >= Math.ceil(displayedTables.length / displayCount) - 1}
+                                className={cn("rounded-full w-20 h-20 transition-all border-none", isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-[#E8E4DC] hover:bg-[#D5D0C8] text-[#1A1A1A]')}
                             >
                                 <ChevronRight size={48} />
                             </Button>
@@ -476,11 +468,11 @@ export default function ScreenPage() {
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.12)'};
                     border-radius: 10px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
                 }
                 .custom-scrollbar-horizontal::-webkit-scrollbar {
                     height: 2px;

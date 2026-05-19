@@ -7,7 +7,6 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Play, Loader2, QrCode, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Magnetic from './Magnetic'
-import { Html5Qrcode } from 'html5-qrcode'
 
 export default function Hero() {
   const router = useRouter()
@@ -30,14 +29,16 @@ export default function Hero() {
   useEffect(() => {
     if (!isScanning) return;
 
-    let html5QrCode: Html5Qrcode | null = null;
+    let html5QrCode: any = null;
     let isComponentMounted = true;
 
     // Poll until AnimatePresence finishes and #reader is in the DOM
-    const initScanner = setInterval(() => {
+    const initScanner = setInterval(async () => {
       if (!isComponentMounted || !document.getElementById("reader")) return;
 
       clearInterval(initScanner);
+      const { Html5Qrcode } = await import('html5-qrcode');
+      if (!isComponentMounted) return;
       html5QrCode = new Html5Qrcode("reader");
 
       const onScanSuccess = async (decodedText: string) => {

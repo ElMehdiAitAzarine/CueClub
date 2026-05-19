@@ -24,6 +24,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useSectionTheme } from '@/hooks/use-section-theme'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface MenuItem {
     id: number | string;
@@ -74,6 +76,7 @@ const getCategoryColor = (category: string) => {
 
 export default function MenuPage() {
     const router = useRouter()
+    const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const [menuItems, setMenuItems] = useState<MenuItem[]>([])
     const [cart, setCart] = useState<{[key: string]: number}>({})
     const [ordering, setOrdering] = useState(false)
@@ -267,7 +270,7 @@ export default function MenuPage() {
     const pendingOrders = userOrders.filter(o => o.status === 'pending')
 
     return (
-        <div className="dark min-h-screen bg-[#0A0A0A] text-foreground selection:bg-primary/30 pb-32">
+        <div className={cn("min-h-screen text-foreground selection:bg-primary/30 pb-32", isDark ? 'dark bg-[#0A0A0A]' : 'light-mode bg-[#F7F5F0]')}>
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
@@ -275,7 +278,7 @@ export default function MenuPage() {
             </div>
 
             {/* Sticky Header */}
-            <header className="sticky top-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 px-4 py-4">
+            <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b px-4 py-4", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <Button 
                         variant="ghost" 
@@ -290,6 +293,7 @@ export default function MenuPage() {
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Member Service</p>
                     </div>
                     <div className="flex items-center gap-4">
+                        <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
                         <button 
                             onClick={() => setShowHistory(true)}
                             className="p-2 rounded-full hover:bg-white/5 transition-colors relative"
@@ -382,7 +386,7 @@ export default function MenuPage() {
                     <section className="bg-primary/5 border border-primary/20 p-6 rounded-[2rem] flex items-center justify-between">
                         <div>
                             <p className="text-[10px] text-primary font-black uppercase tracking-widest">Welcome back,</p>
-                            <h2 className="text-xl font-black uppercase italic text-white">{localStorage.getItem('cueclub_user_name')}</h2>
+                            <h2 className="text-xl font-black uppercase italic text-white">{typeof window !== 'undefined' ? localStorage.getItem('cueclub_user_name') : ''}</h2>
                         </div>
                         {isGuest && (
                             <span className="bg-white/5 text-white/40 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-white/5">
@@ -514,7 +518,7 @@ export default function MenuPage() {
                                     transition={{ delay: idx * 0.05 }}
                                     className="group"
                                 >
-                                    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex items-center gap-6 transition-all duration-300 hover:bg-white/[0.08] hover:border-primary/20 relative overflow-hidden">
+                                    <div className={cn("border rounded-3xl p-4 flex items-center gap-6 transition-all duration-300 hover:border-primary/20 relative overflow-hidden", isDark ? 'bg-white/[0.03] border-white/5 hover:bg-white/[0.08]' : 'bg-[#EFECE5]/80 border-[#D5D0C8] hover:bg-[#E8E4DC]')}>
                                         {/* Minimalist Icon/Image Placeholder */}
                                         <div className={cn(
                                             "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-500",
@@ -632,7 +636,7 @@ export default function MenuPage() {
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed top-0 right-0 bottom-0 w-[90%] md:w-[400px] bg-[#0A0A0A] border-l border-white/5 z-[120] p-8 shadow-2xl overflow-y-auto"
+                            className={cn("fixed top-0 right-0 bottom-0 w-[90%] md:w-[400px] border-l z-[120] p-8 shadow-2xl overflow-y-auto", isDark ? 'bg-[#0A0A0A] border-white/5' : 'bg-[#F7F5F0] border-[#D5D0C8]')}
                         >
                             <div className="flex items-center justify-between mb-10">
                                 <div>

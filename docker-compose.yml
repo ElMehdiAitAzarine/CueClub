@@ -13,7 +13,8 @@ services:
       - db_data:/var/lib/mysql
 
   backend:
-    build: 
+    image: cueclubprojectressources-d0ckeqfyhwbfb6b5.azurecr.io/backend:latest
+    build:
       context: ./CueClub-BackEnd
       dockerfile: Dockerfile
     restart: always
@@ -31,6 +32,7 @@ services:
       - ./CueClub-BackEnd/uploads:/app/uploads
 
   frontend:
+    image: cueclubprojectressources-d0ckeqfyhwbfb6b5.azurecr.io/frontend:latest
     build:
       context: ./CueClub-FrontEnd
       dockerfile: Dockerfile
@@ -38,7 +40,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - DEBUG=True
     depends_on:
       - backend
 

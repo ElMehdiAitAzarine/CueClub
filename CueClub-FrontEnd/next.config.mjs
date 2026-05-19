@@ -7,14 +7,16 @@ const nextConfig = {
     unoptimized: true,
   },
   async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://cueclub-backend-gua4aqdcceeyfqgr.francecentral-01.azurewebsites.net';
+    console.log('Next.js Proxy: Rewriting /api to', backendUrl);
     return [
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:8000/:path*',
+        destination: `${backendUrl}/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://127.0.0.1:8000/uploads/:path*',
+        destination: `${backendUrl}/uploads/:path*`,
       },
     ]
   },

@@ -28,6 +28,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { useSectionTheme } from '@/hooks/use-section-theme'
+import ThemeToggle from '@/components/ThemeToggle'
 
 type Tab = 'dashboard' | 'waiters' | 'menu' | 'orders' | 'clients' | 'sessions' | 'financials' | 'history' | 'games' | 'admins'
 
@@ -119,6 +121,7 @@ interface GameType {
 
 export default function AdminPage() {
     const router = useRouter()
+    const { theme, toggleTheme, isDark } = useSectionTheme('admin')
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [loginForm, setLoginForm] = useState({ username: '', password: '' })
     const [loading, setLoading] = useState(false)
@@ -256,23 +259,32 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="dark h-screen bg-[#050505] text-white flex overflow-hidden relative font-['Outfit'] items-center justify-center">
+        <div className={cn("h-screen flex overflow-hidden relative font-['Outfit'] items-center justify-center transition-colors duration-500", isDark ? 'dark bg-[#050505] text-white' : 'light-mode bg-[#F7F5F0] text-[#1A1A1A]')}>
             {/* Global Background Aesthetic */}
-            <div className="absolute inset-0 z-0">
-                <img
-                    src="/images/bg_billiardo.jpg"
-                    alt="Billiards Background"
-                    className="w-full h-full object-cover"
-                />
-                {/* Balanced Darkness & Shadowing as in Home Page */}
-                <div className="absolute inset-0 bg-black/60 mix-blend-multiply" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-black/80" />
+            <div className="absolute inset-0 z-0 transition-opacity duration-500">
+                {isDark ? (
+                    <>
+                        <img
+                            src="/images/bg_billiardo.jpg"
+                            alt="Billiards Background"
+                            className="w-full h-full object-cover"
+                        />
+                        {/* Balanced Darkness & Shadowing as in Home Page */}
+                        <div className="absolute inset-0 bg-black/60 mix-blend-multiply" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-black/80" />
+                    </>
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-tr from-[#EFECE5] via-[#F7F5F0] to-[#FAF9F5]" />
+                )}
             </div>
 
             {!isLoggedIn ? (
-                <Card className="w-full max-w-[400px] bg-white/[0.02] border-white/5 rounded-[2rem] p-8 shadow-2xl backdrop-blur-xl relative z-10">
+                <Card className={cn("w-full max-w-[400px] rounded-[2rem] p-8 shadow-2xl backdrop-blur-xl relative z-10", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-white/70 border-[#D5D0C8]')}>
                     <div className="space-y-8">
-                        <div className="text-center space-y-3">
+                        <div className="text-center space-y-3 relative">
+                            <div className="absolute top-0 right-0">
+                                <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
+                            </div>
                             <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto border border-primary/30">
                                 <Lock className="text-primary" size={32} />
                             </div>
@@ -287,14 +299,14 @@ export default function AdminPage() {
                                     placeholder="Username"
                                     value={loginForm.username}
                                     onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-6 font-bold focus:outline-none focus:border-primary/50 transition-all text-white text-sm"
+                                    className={cn("w-full h-12 rounded-xl px-6 font-bold focus:outline-none focus:border-primary/50 transition-all text-sm border-none focus-visible:ring-1", isDark ? 'bg-white/5 text-white' : 'bg-[#E8E4DC] text-[#1A1A1A]')}
                                 />
                                 <input
                                     type="password"
                                     placeholder="Password"
                                     value={loginForm.password}
                                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-6 font-bold focus:outline-none focus:border-primary/50 transition-all text-white text-sm"
+                                    className={cn("w-full h-12 rounded-xl px-6 font-bold focus:outline-none focus:border-primary/50 transition-all text-sm border-none focus-visible:ring-1", isDark ? 'bg-white/5 text-white' : 'bg-[#E8E4DC] text-[#1A1A1A]')}
                                 />
                             </div>
                             <Button
@@ -308,9 +320,9 @@ export default function AdminPage() {
                     </div>
                 </Card>
             ) : (
-                <div className="w-full h-full flex overflow-hidden relative z-10">
+                 <div className="w-full h-full flex overflow-hidden relative z-10">
                     {/* Sidebar */}
-                    <aside className="w-72 bg-black/40 backdrop-blur-3xl border-r border-white/5 p-6 flex flex-col hidden lg:flex relative shadow-2xl shrink-0">
+                    <aside className={cn("w-72 border-r p-6 flex flex-col hidden lg:flex relative shrink-0 transition-all duration-300", isDark ? 'bg-black/40 backdrop-blur-3xl border-white/5 shadow-2xl' : 'bg-[#EFECE5]/80 backdrop-blur-3xl border-[#D5D0C8] shadow-lg shadow-black/5')}>
                         <div className="flex items-center gap-4 mb-12">
                             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
                                 <span className="text-black font-black text-xl">C</span>
@@ -379,7 +391,7 @@ export default function AdminPage() {
                                                     "w-full h-11 rounded-xl px-6 flex items-center gap-4 font-black uppercase tracking-widest text-[9px] transition-all group/nav",
                                                     activeTab === item.id
                                                         ? "bg-primary text-black shadow-lg shadow-primary/40 scale-[1.02] z-10"
-                                                        : "text-white/70 hover:bg-white/[0.05] hover:text-white"
+                                                        : isDark ? "text-white/70 hover:bg-white/[0.05] hover:text-white" : "text-[#4A4540]/80 hover:bg-[#E8E4DC] hover:text-[#1A1A1A]"
                                                 )}
                                             >
                                                 <item.icon size={14} className={cn(
@@ -411,7 +423,7 @@ export default function AdminPage() {
                     <main className="flex-1 p-6 overflow-hidden flex flex-col relative gap-4">
                         <header className="flex justify-between items-end shrink-0">
                             <div>
-                                <h1 className="text-2xl font-black uppercase tracking-tighter italic mb-0.5 text-white">
+                                <h1 className={cn("text-2xl font-black uppercase tracking-tighter italic mb-0.5", isDark ? 'text-white' : 'text-[#1A1A1A]')}>
                                     {activeTab === 'dashboard' ? 'Control - Panel' :
                                         activeTab === 'sessions' ? 'Sessions' :
                                             activeTab === 'games' ? 'Stations' :
@@ -425,13 +437,14 @@ export default function AdminPage() {
                                 <p className="text-primary font-black tracking-[0.4em] uppercase text-[7px] italic opacity-80">Admin Command Node</p>
                             </div>
                             <div className="flex items-center gap-4">
-                                <div className="bg-white/5 border border-white/10 rounded-lg h-8 px-4 flex items-center gap-3 min-w-[240px] focus-within:border-primary/50 transition-all shadow-xl backdrop-blur-md">
+                                <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
+                                <div className={cn("rounded-lg h-8 px-4 flex items-center gap-3 min-w-[240px] focus-within:border-primary/50 transition-all backdrop-blur-md", isDark ? 'bg-white/5 border border-white/10 shadow-xl' : 'bg-white border border-[#D5D0C8] shadow-sm shadow-black/5')}>
                                     <Search size={12} className="text-muted-foreground" />
                                     <input
                                         placeholder="Intelligence Search..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-[9px] font-black uppercase tracking-widest flex-1 text-white placeholder:text-white/20"
+                                        className={cn("bg-transparent border-none outline-none text-[9px] font-black uppercase tracking-widest flex-1", isDark ? 'text-white placeholder:text-white/20' : 'text-[#1A1A1A] placeholder:text-[#B0AAA0]')}
                                     />
                                 </div>
                             </div>
@@ -439,18 +452,18 @@ export default function AdminPage() {
 
                         {activeTab === 'dashboard' && (
                             <div className="flex-1 flex flex-col min-h-0 gap-6">
-                                <div className="flex items-center justify-between gap-4 shrink-0 px-8 py-4 bg-white/[0.03] border border-white/10 rounded-[2.5rem] backdrop-blur-2xl mx-2 shadow-2xl relative overflow-hidden group/stats">
+                                <div className={cn("flex items-center justify-between gap-4 shrink-0 px-8 py-4 border rounded-[2.5rem] backdrop-blur-2xl mx-2 relative overflow-hidden group/stats transition-all duration-300", isDark ? 'bg-white/[0.03] border-white/10 shadow-2xl' : 'bg-[#EFECE5]/80 border-[#D5D0C8] shadow-lg shadow-black/5')}>
                                     <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-0 group-hover/stats:opacity-100 transition-opacity duration-700" />
-                                    <StatCard label="Active Reach" value={clients.filter(c => !searchTerm || c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone?.includes(searchTerm)).length} icon={Users} trend="+3 mem" />
-                                    <div className="w-px h-12 bg-white/10 hidden md:block" />
-                                    <StatCard label="Live Game" value={sessions.filter(s => s.status === 'playing' && (!searchTerm || s.table_name?.toLowerCase().includes(searchTerm.toLowerCase()))).length} icon={Clock} trend="Active" />
-                                    <div className="w-px h-12 bg-white/10 hidden md:block" />
-                                    <StatCard label="Staff On" value={waiters.filter(w => w.status === 'active').length} icon={Zap} trend="Optimized" />
-                                    <div className="w-px h-12 bg-white/10 hidden md:block" />
-                                    <StatCard label="Revenue" value={`${financials.filter(f => !searchTerm || f.order_details?.toLowerCase().includes(searchTerm.toLowerCase())).reduce((s, o) => s + parseFloat((o.amount as string) || '0'), 0)} DH`} icon={DollarSign} trend="+12%" />
+                                    <StatCard label="Active Reach" value={clients.filter(c => !searchTerm || c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone?.includes(searchTerm)).length} icon={Users} trend="+3 mem" isDark={isDark} />
+                                    <div className={cn("w-px h-12 hidden md:block", isDark ? 'bg-white/10' : 'bg-[#D5D0C8]')} />
+                                    <StatCard label="Live Game" value={sessions.filter(s => s.status === 'playing' && (!searchTerm || s.table_name?.toLowerCase().includes(searchTerm.toLowerCase()))).length} icon={Clock} trend="Active" isDark={isDark} />
+                                    <div className={cn("w-px h-12 hidden md:block", isDark ? 'bg-white/10' : 'bg-[#D5D0C8]')} />
+                                    <StatCard label="Staff On" value={waiters.filter(w => w.status === 'active').length} icon={Zap} trend="Optimized" isDark={isDark} />
+                                    <div className={cn("w-px h-12 hidden md:block", isDark ? 'bg-white/10' : 'bg-[#D5D0C8]')} />
+                                    <StatCard label="Revenue" value={`${financials.filter(f => !searchTerm || f.order_details?.toLowerCase().includes(searchTerm.toLowerCase())).reduce((s, o) => s + parseFloat((o.amount as string) || '0'), 0)} DH`} icon={DollarSign} trend="+12%" isDark={isDark} />
                                 </div>
 
-                                <Card className="bg-white/[0.02] border-white/5 rounded-[1.5rem] px-6 py-2 border-none shadow-2xl flex-1 overflow-hidden flex flex-col min-h-0 backdrop-blur-xl">
+                                <Card className={cn("rounded-[1.5rem] px-6 py-2 border-none flex-1 overflow-hidden flex flex-col min-h-0 backdrop-blur-xl transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5 shadow-2xl' : 'bg-[#EFECE5]/80 border-[#D5D0C8]/60 shadow-lg shadow-black/5')}>
                                     <CardHeader className="px-0 pt-0 pb-2 flex flex-row items-center justify-between shrink-0">
                                         <div>
                                             <CardTitle className="text-lg font-black uppercase tracking-tighter italic">Recent Activity</CardTitle>
@@ -464,7 +477,7 @@ export default function AdminPage() {
                                     <CardContent className="px-0 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                                         <div className="space-y-3">
                                             {orders.slice(0, 5).map(order => (
-                                                <div key={order.id} className="bg-white/5 rounded-xl p-5 flex items-center justify-between border border-white/5 hover:bg-white/[0.07] transition-all">
+                                                <div key={order.id} className={cn("rounded-xl p-5 flex items-center justify-between border transition-all duration-300", isDark ? 'bg-white/5 border-white/5 hover:bg-white/[0.07]' : 'bg-white/80 border-[#E5E1D8] hover:bg-[#FAF9F5]')}>
                                                     <div className="flex items-center gap-5">
                                                         <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center text-primary">
                                                             <Zap size={20} />
@@ -481,7 +494,7 @@ export default function AdminPage() {
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-lg font-black text-primary">{order.price} DH</p>
-                                                        <p className="text-[9px] text-muted-foreground font-black uppercase">{new Date(order.created_at).toLocaleTimeString()}</p>
+                                                        <p className={cn("text-[9px] font-black uppercase", isDark ? 'text-muted-foreground' : 'text-[#8A857E]')}>{new Date(order.created_at).toLocaleTimeString()}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -494,15 +507,15 @@ export default function AdminPage() {
                         {activeTab === 'menu' && (
                             <section className="space-y-4 h-full flex flex-col">
                                 <div className="flex justify-between items-center shrink-0">
-                                    <h2 className="text-lg font-black uppercase italic text-white/40">Item Repository</h2>
+                                    <h2 className={cn("text-lg font-black uppercase italic", isDark ? 'text-white/40' : 'text-[#1A1A1A]/50')}>Item Repository</h2>
                                     <Button className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-black font-black uppercase tracking-widest rounded-xl px-4 h-8 text-[9px] transition-all" onClick={() => setShowModal({ type: 'menu' })}>
                                         <Plus className="mr-2" size={12} /> Add New Item
                                     </Button>
                                 </div>
-                                <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] overflow-hidden flex-1 relative">
+                                <div className={cn("border rounded-[2.5rem] overflow-hidden flex-1 relative transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/80 border-[#D5D0C8]')}>
                                     <div className="absolute inset-0 overflow-y-auto">
                                         <table className="w-full text-left">
-                                            <thead className="bg-white/5 sticky top-0 z-10 backdrop-blur-md">
+                                            <thead className={cn("sticky top-0 z-10 backdrop-blur-md border-b", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
                                                 <tr>
                                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest opacity-40">ID</th>
                                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest opacity-40">Detail</th>
@@ -512,24 +525,24 @@ export default function AdminPage() {
                                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest opacity-40 text-right">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-white/5">
+                                            <tbody className={cn("divide-y", isDark ? 'divide-white/5' : 'divide-[#D5D0C8]')}>
                                                 {menu.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase())).map(item => (
-                                                    <tr key={item.id} className="hover:bg-white/[0.03] transition-colors group">
-                                                        <td className="px-8 py-6 font-black text-white/20 text-xs italic">#{item.id}</td>
+                                                    <tr key={item.id} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/40')}>
+                                                        <td className={cn("px-8 py-6 font-black text-xs italic", isDark ? 'text-white/20' : 'text-[#8A857E]')}>#{item.id}</td>
                                                         <td className="px-8 py-6">
                                                             <div className="flex items-center gap-4">
-                                                                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center italic font-black text-white/10 group-hover:text-primary transition-colors">
+                                                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center italic font-black transition-colors", isDark ? 'bg-white/5 text-white/10 group-hover:text-primary' : 'bg-white border border-[#D5D0C8] text-[#8A857E] group-hover:text-primary')}>
                                                                     {item.name[0]}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="font-black uppercase tracking-tight text-white">{item.name}</p>
+                                                                    <p className={cn("font-black uppercase tracking-tight", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{item.name}</p>
                                                                     <p className="text-[10px] text-muted-foreground line-clamp-1 max-w-[300px] italic">{item.description}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <div className="flex justify-center">
-                                                                <span className="px-4 py-1.5 rounded-full bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest">
+                                                                <span className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", isDark ? 'bg-white/5 border border-white/5' : 'bg-white border border-[#D5D0C8]')}>
                                                                     {item.category}
                                                                 </span>
                                                             </div>
@@ -565,10 +578,10 @@ export default function AdminPage() {
                                         <Plus className="mr-2" size={14} /> Recruit Staff
                                     </Button>
                                 </div>
-                                <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden flex-1 relative">
+                                <div className={cn("border rounded-[2rem] overflow-hidden flex-1 relative transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/80 border-[#D5D0C8]')}>
                                     <div className="absolute inset-0 overflow-y-auto">
                                         <table className="w-full text-left">
-                                            <thead className="bg-white/5 sticky top-0 z-10 backdrop-blur-md">
+                                            <thead className={cn("sticky top-0 z-10 backdrop-blur-md border-b", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
                                                 <tr>
                                                     <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest opacity-40">Staff Name</th>
                                                     <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest opacity-40 text-center">Identity / Role</th>
@@ -577,16 +590,16 @@ export default function AdminPage() {
                                                     <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest opacity-40 text-right">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-white/5">
+                                            <tbody className={cn("divide-y", isDark ? 'divide-white/5' : 'divide-[#D5D0C8]')}>
                                                 {waiters.map(waiter => (
-                                                    <tr key={waiter.id} className="hover:bg-white/[0.03] transition-colors group">
+                                                    <tr key={waiter.id} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/40')}>
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-4">
-                                                                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-primary/20 group-hover:border-primary/50 transition-all">
-                                                                    <Users className="text-white/20 group-hover:text-primary" size={18} />
+                                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border transition-all", isDark ? 'bg-white/5 border-white/10 group-hover:bg-primary/20 group-hover:border-primary/50' : 'bg-white border-[#D5D0C8] group-hover:bg-primary/10 group-hover:border-primary/50')}>
+                                                                    <Users className={cn("group-hover:text-primary", isDark ? 'text-white/20' : 'text-[#8A857E]')} size={18} />
                                                                 </div>
                                                                 <div>
-                                                                    <p className="font-black uppercase tracking-tight text-white text-sm">{waiter.full_name}</p>
+                                                                    <p className={cn("font-black uppercase tracking-tight text-sm", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{waiter.full_name}</p>
                                                                     <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-50 italic">Member #{waiter.id}</p>
                                                                 </div>
                                                             </div>
@@ -633,24 +646,24 @@ export default function AdminPage() {
                         )}
 
                         {activeTab === 'orders' && (
-                            <section className="h-full flex flex-col space-y-6">
-                                <div className="flex justify-between items-center shrink-0">
-                                    <h2 className="text-xl font-black uppercase italic text-white">Command Stream</h2>
-                                    <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">{orders.length} Active Records</p>
-                                </div>
-                                <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 border-none shadow-2xl flex-1 overflow-y-auto relative custom-scrollbar">
-                                    <div className="absolute inset-0 p-6 space-y-4">
-                                        {orders.filter(o => !searchTerm || o.name?.toLowerCase().includes(searchTerm.toLowerCase()) || o.customer?.toLowerCase().includes(searchTerm.toLowerCase())).map(order => (
-                                            <div key={order.id} className="bg-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between border border-white/5 hover:bg-white/[0.07] transition-all gap-6 group">
-                                                <div className="flex items-center gap-6 w-full md:w-auto">
-                                                    <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 italic font-black text-lg text-white/20">
-                                                        {order.customer?.charAt(0) || '?'}
-                                                    </div>
+                             <section className="h-full flex flex-col space-y-6">
+                                 <div className="flex justify-between items-center shrink-0">
+                                     <h2 className={cn("text-xl font-black uppercase italic", isDark ? 'text-white' : 'text-[#1A1A1A]')}>Command Stream</h2>
+                                     <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">{orders.length} Active Records</p>
+                                 </div>
+                                 <div className={cn("rounded-[2rem] p-6 border-none flex-1 overflow-y-auto relative custom-scrollbar transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5 shadow-2xl' : 'bg-[#EFECE5]/85 border-[#D5D0C8] shadow-lg shadow-black/5')}>
+                                     <div className="absolute inset-0 p-6 space-y-4">
+                                         {orders.filter(o => !searchTerm || o.name?.toLowerCase().includes(searchTerm.toLowerCase()) || o.customer?.toLowerCase().includes(searchTerm.toLowerCase())).map(order => (
+                                             <div key={order.id} className={cn("rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between border transition-all gap-6 group duration-300", isDark ? 'bg-white/5 border-white/5 hover:bg-white/[0.07]' : 'bg-white border-[#E5E1D8] hover:bg-[#FAF9F5]')}>
+                                                 <div className="flex items-center gap-6 w-full md:w-auto">
+                                                     <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border italic font-black text-lg", isDark ? 'bg-white/5 border-white/10 text-white/20' : 'bg-[#FAF9F5] border-[#D5D0C8] text-[#8A857E]')}>
+                                                         {order.customer?.charAt(0) || '?'}
+                                                     </div>
                                                     <div>
-                                                        <p className="text-lg font-black uppercase tracking-tight">{order.name}</p>
+                                                        <p className={cn("text-lg font-black uppercase tracking-tight", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{order.name}</p>
                                                         <div className="flex items-center gap-3 mt-1">
                                                             <span className="text-[10px] font-bold text-primary uppercase tracking-widest italic">{order.customer}</span>
-                                                            <span className="text-white/10">•</span>
+                                                            <span className={isDark ? 'text-white/10' : 'text-[#D5D0C8]'}>•</span>
                                                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{order.table}</span>
                                                             <span className="text-white/10">•</span>
                                                             <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md uppercase tracking-widest">
@@ -1214,18 +1227,18 @@ export default function AdminPage() {
     )
 }
 
-function StatCard({ label, value, icon: Icon, trend }: any) {
+function StatCard({ label, value, icon: Icon, trend, isDark }: any) {
     return (
-        <div className="flex items-center gap-6 px-4 py-2 hover:bg-white/5 rounded-[1.5rem] transition-all cursor-default group relative z-10 flex-1 justify-center">
-            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/20 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-primary/20 shrink-0">
+        <div className={cn("flex items-center gap-6 px-4 py-2 rounded-[1.5rem] transition-all cursor-default group relative z-10 flex-1 justify-center", isDark ? 'hover:bg-white/5' : 'hover:bg-[#FAF9F5]/80')}>
+            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/20 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-primary/20 shrink-0", isDark ? 'bg-white/5' : 'bg-white border border-[#D5D0C8]')}>
                 <Icon size={24} />
             </div>
             <div className="flex flex-col">
                 <div className="flex items-center gap-3 mb-1">
-                    <p className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em] leading-none">{label}</p>
+                    <p className={cn("text-[9px] font-black uppercase tracking-[0.2em] leading-none", isDark ? 'text-white/40' : 'text-[#6B6560]')}>{label}</p>
                     <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">{trend}</span>
                 </div>
-                <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none">{value}</h3>
+                <h3 className={cn("text-2xl font-black italic uppercase tracking-tighter leading-none", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{value}</h3>
             </div>
         </div>
     )

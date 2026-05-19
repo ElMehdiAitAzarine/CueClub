@@ -8,9 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ChevronLeft, Camera, Upload, CheckCircle2, Loader2, Phone, Lock, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSectionTheme } from '@/hooks/use-section-theme'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function ProfilePage() {
     const router = useRouter()
+    const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [userId, setUserId] = useState<string | null>(null)
     const [formData, setFormData] = useState({
@@ -133,23 +136,26 @@ export default function ProfilePage() {
 
     if (loading) {
         return (
-            <div className="dark min-h-screen bg-background flex items-center justify-center">
+            <div className={cn("min-h-screen flex items-center justify-center", isDark ? 'dark bg-background' : 'light-mode bg-[#F7F5F0]')}>
                 <Loader2 className="animate-spin text-primary" size={48} />
             </div>
         )
     }
 
     return (
-        <div className="dark min-h-screen bg-[#0A0A0A] text-foreground selection:bg-primary/30">
-            <header className="sticky top-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 p-4 flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
-                    <ChevronLeft size={20} />
-                </Button>
-                <h1 className="text-sm font-black uppercase">Edit Profile</h1>
+        <div className={cn("min-h-screen text-foreground selection:bg-primary/30 pb-10", isDark ? 'dark bg-[#0A0A0A]' : 'light-mode bg-[#F7F5F0]')}>
+            <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b p-4 flex items-center justify-between gap-4", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
+                        <ChevronLeft size={20} />
+                    </Button>
+                    <h1 className="text-sm font-black uppercase">Edit Profile</h1>
+                </div>
+                <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
             </header>
 
             <main className="max-w-lg mx-auto p-4 space-y-6">
-                <Card className="border-white/10 bg-white/5 rounded-3xl overflow-hidden">
+                <Card className={cn("rounded-3xl overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
                     <CardHeader className="text-center">
                         <div className="mx-auto mb-4 relative w-24 h-24">
                             <input
@@ -159,12 +165,12 @@ export default function ProfilePage() {
                                 accept="image/*"
                                 onChange={handleImageUpload}
                             />
-                            <div className="w-full h-full rounded-full border-2 border-primary/20 overflow-hidden bg-white/5 relative group">
+                            <div className={cn("w-full h-full rounded-full border-2 border-primary/20 overflow-hidden relative group", isDark ? 'bg-white/5' : 'bg-[#E8E4DC]')}>
                                 {profileImage ? (
                                     <img src={profileImage.startsWith('data:') ? profileImage : `${window.location.origin}${profileImage}`} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <User size={40} className="text-white/20" />
+                                        <User size={40} className={isDark ? "text-white/20" : "text-black/20"} />
                                     </div>
                                 )}
                                 <button 
@@ -187,7 +193,7 @@ export default function ProfilePage() {
                                     id="firstName"
                                     value={formData.firstName}
                                     onChange={handleInputChange}
-                                    className="bg-white/5 border-white/10 rounded-xl"
+                                    className={cn("rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -196,7 +202,7 @@ export default function ProfilePage() {
                                     id="lastName"
                                     value={formData.lastName}
                                     onChange={handleInputChange}
-                                    className="bg-white/5 border-white/10 rounded-xl"
+                                    className={cn("rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                 />
                             </div>
                         </div>
@@ -208,11 +214,11 @@ export default function ProfilePage() {
                                     id="phone"
                                     value={formData.phone}
                                     onChange={handleInputChange}
-                                    className="bg-white/5 border-white/10 rounded-xl pl-10"
+                                    className={cn("rounded-xl pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                 />
                             </div>
                         </div>
-                        <div className="pt-4 space-y-4 border-t border-white/5">
+                        <div className={cn("pt-4 space-y-4 border-t", isDark ? 'border-white/5' : 'border-black/5')}>
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Change Password</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -225,7 +231,7 @@ export default function ProfilePage() {
                                             placeholder="••••"
                                             value={formData.password}
                                             onChange={handleInputChange}
-                                            className="bg-white/5 border-white/10 rounded-xl pl-10"
+                                            className={cn("rounded-xl pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                         />
                                     </div>
                                 </div>
@@ -239,7 +245,7 @@ export default function ProfilePage() {
                                             placeholder="••••"
                                             value={formData.confirmPassword}
                                             onChange={handleInputChange}
-                                            className={cn("bg-white/5 border-white/10 rounded-xl pl-10", errors.confirmPassword && "border-destructive")}
+                                            className={cn("rounded-xl pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80', errors.confirmPassword && "border-destructive border-solid border-2")}
                                         />
                                     </div>
                                 </div>

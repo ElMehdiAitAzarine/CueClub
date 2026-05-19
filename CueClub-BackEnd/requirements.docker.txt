@@ -3,6 +3,8 @@ djangorestframework
 django-cors-headers
 passlib[pbkdf2_sha256]
 pymysql
+mssql-django
+pyodbc
 qrcode[pil]
 python-dotenv
 whitenoise

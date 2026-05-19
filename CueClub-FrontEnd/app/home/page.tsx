@@ -20,6 +20,8 @@ import {
     User
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSectionTheme } from '@/hooks/use-section-theme'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface Player {
     id: number;
@@ -48,6 +50,7 @@ interface CafeOccupation {
 
 export default function HomePage() {
     const router = useRouter()
+    const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const [userName, setUserName] = useState<string | null>(null)
     const [userId, setUserId] = useState<string | null>(null)
     const [tables, setTables] = useState<TableStatus[]>([])
@@ -186,15 +189,15 @@ export default function HomePage() {
 
     if (loading) {
         return (
-            <div className="dark min-h-screen bg-background flex flex-col items-center justify-center">
+            <div className={cn("min-h-screen flex flex-col items-center justify-center", isDark ? 'dark bg-background' : 'light-mode bg-[#F7F5F0]')}>
                 <Loader2 className="animate-spin text-primary" size={48} />
             </div>
         )
     }
 
     return (
-        <div className="dark min-h-screen bg-[#0A0A0A] text-foreground selection:bg-primary/30 pb-20">
-            <header className="sticky top-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 p-4 flex justify-between items-center">
+        <div className={cn("min-h-screen text-foreground selection:bg-primary/30 pb-20", isDark ? 'dark bg-[#0A0A0A]' : 'light-mode bg-[#F7F5F0]')}>
+            <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b p-4 flex justify-between items-center", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase text-muted-foreground mr-2 hidden sm:block">{userName}</span>
                     <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className="rounded-full hover:bg-white/5 transition-colors">
@@ -203,6 +206,7 @@ export default function HomePage() {
                     <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-full hover:text-destructive transition-colors">
                         <LogOut size={18} />
                     </Button>
+                    <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
                 </div>
             </header>
 
@@ -255,7 +259,7 @@ export default function HomePage() {
                     <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground px-2">Living Arena Status</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {tables.map(table => (
-                            <Card key={table.id} className="bg-white/5 border-white/10 rounded-[2rem] overflow-hidden">
+                            <Card key={table.id} className={cn("rounded-[2rem] overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -275,7 +279,7 @@ export default function HomePage() {
                                                 player.status === 'notified' ? "bg-primary/10 border-primary/30" : 
                                                 player.status === 'playing' ? "bg-blue-500/10 border-blue-500/30" : 
                                                 (player.status === 'completed' || player.status === 'cancelled') ? "bg-white/[0.01] border-white/5 opacity-40" : 
-                                                "bg-white/[0.03] border-white/5"
+                                                isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]"
                                             )}>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-[10px] font-black">{player.status === 'playing' ? '🎮' : idx + 1}</span>

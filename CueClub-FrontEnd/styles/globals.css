@@ -48,6 +48,29 @@
   --ring: #EA580C;
 }
 
+/* Warm light mode — easy on the eyes, no pure white */
+.light-mode {
+  --background: #F7F5F0;
+  --foreground: #1A1A1A;
+  --card: #EFECE5;
+  --card-foreground: #1A1A1A;
+  --popover: #EFECE5;
+  --popover-foreground: #1A1A1A;
+  --primary: #D4520A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E08D0A;
+  --secondary-foreground: #1A1A1A;
+  --muted: #E8E4DC;
+  --muted-foreground: #6B6560;
+  --accent: #D4520A;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC3545;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: #E8E4DC;
+  --ring: #D4520A;
+}
+
 @theme inline {
   --font-sans: var(--font-inter), 'Inter', sans-serif;
   --font-heading: var(--font-space), 'Space Grotesk', sans-serif;

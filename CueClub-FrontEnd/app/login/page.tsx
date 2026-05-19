@@ -9,9 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Lock, Phone, ChevronRight, UserCircle, Sparkles, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSectionTheme } from '@/hooks/use-section-theme'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function LoginPage() {
     const router = useRouter()
+    const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const [formData, setFormData] = useState({
         phone: '',
         password: '',
@@ -73,34 +76,35 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="dark min-h-screen bg-background flex flex-col selection:bg-primary/30 h-screen overflow-hidden">
+        <div className={cn("min-h-screen flex flex-col selection:bg-primary/30 h-screen overflow-hidden", isDark ? 'dark bg-background text-white' : 'light-mode bg-[#F7F5F0] text-[#1A1A1A]')}>
             {/* Ambient Background Elements */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse-slow" />
                 <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-secondary/10 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '1s' }} />
             </div>
 
-            {/* Header / Logo */}
-            <header className="p-6 relative z-10">
-                <Link href="/" className="flex items-center gap-2 w-fit group">
+            {/* Header / Logo & Theme Toggle */}
+            <header className="p-6 relative z-10 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-2 group">
                     <div className="w-10 h-10 bg-gradient-to-br from-[#EA580C] to-[#F59E0B] rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-3 group-hover:rotate-12 transition-transform duration-500">
                         <span className="text-white font-black text-xl">C</span>
                     </div>
                     <div>
-                        <span className="text-xl font-bold text-foreground block leading-tight">Cue-Club</span>
+                        <span className="text-xl font-bold block leading-tight">Cue-Club</span>
                         <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Excellence Defined</span>
                     </div>
                 </Link>
+                <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
             </header>
 
             <main className="flex-1 flex items-center justify-center p-4 relative z-10 overflow-hidden min-h-0">
                 <div className="w-full max-w-sm space-y-8">
                     <div className="text-center space-y-2">
-                        <h1 className="text-3xl font-black tracking-tight text-white">Welcome Back</h1>
+                        <h1 className={cn("text-3xl font-black tracking-tight", isDark ? 'text-white' : 'text-[#1A1A1A]')}>Welcome Back</h1>
                         <p className="text-sm text-muted-foreground">The club house awaits your return.</p>
                     </div>
 
-                    <Card className="border-white/10 shadow-2xl bg-[#09090b]/80 backdrop-blur-xl overflow-hidden rounded-3xl border">
+                    <Card className={cn("shadow-2xl backdrop-blur-xl overflow-hidden rounded-3xl border", isDark ? 'border-white/10 bg-[#09090b]/80' : 'border-[#D5D0C8] bg-white/70')}>
                         <form onSubmit={handleLogin}>
                             <CardHeader className="text-center pb-2">
                                 <div className="mx-auto bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mb-4 relative">
@@ -126,7 +130,7 @@ export default function LoginPage() {
                                             placeholder="Phone, email or name"
                                             value={formData.phone}
                                             onChange={handleInputChange}
-                                            className="h-12 pl-11 bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-xl"
+                                            className={cn("h-12 pl-11 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                             required
                                         />
                                     </div>
@@ -144,7 +148,7 @@ export default function LoginPage() {
                                             placeholder="••••••••"
                                             value={formData.password}
                                             onChange={handleInputChange}
-                                            className="h-12 pl-11 bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-xl"
+                                            className={cn("h-12 pl-11 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                             required
                                         />
                                     </div>

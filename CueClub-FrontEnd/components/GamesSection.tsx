@@ -8,21 +8,21 @@ const games = [
     id: 1,
     title: 'Billiards',
     description: 'Precision cue sports played on professional felt with world-class equipment.',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Gemini_Generated_Image_ksmxgaksmxgaksmx-zX9RHxG9ZKfKzn8DohyT7fxES5Rf7b.png',
+    image: '/images/billiards.png',
     color: '#06B6D4', // Cyan
   },
   {
     id: 2,
     title: 'Carrom',
     description: 'A traditional masterpiece of precision and strategy on handcrafted wooden boards.',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Carrom%20Quick%20Guide-bubIGY6584mcoIEPV1u8d4yIeQWQFy.jpg',
+    image: '/images/carrom.jpg',
     color: '#F59E0B', // Amber
   },
   {
     id: 3,
     title: 'Darts',
     description: 'The ultimate test of focus and accuracy on regulation competition boards.',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Plan%20rapproch%C3%A9%20d%27un%20jeu%20de%20fl%C3%A9chettes%20avec%20des%20fl%C3%A9chettes%20en%20oeil%20de%20boeuf%20-%20Design%20traditionnel%20et%20couleurs%20vives%20pour%20un%20t%C3%A9l%C3%A9chargement%20imm%C3%A9diat-iWN4dL2BEWXBc1ChbpA8FQmc7kZnny.jpg',
+    image: '/images/darts.jpg',
     color: '#FB7185', // Rose
   },
 ]

@@ -1,4 +1,6 @@
 FROM node:20-slim AS builder
+# Fresh build: 2026-05-12-22-55
+
 
 WORKDIR /app
 

@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from passlib.context import CryptContext
-from .models import Client, GamingTable, DailyGameSession, Order, CafeTableOccupation, Menu, Waiter, FinancialRecord, GameType, Admin
+from .models import Client, GamingTable, DailyGameSession, Order, CafeTableOccupation, Menu, Waiter, FinancialRecord, GameType, Admin, SessionConfig
 from qr_logic import generate_daily_token, generate_qr_image
 
 # Use pbkdf2_sha256 to be consistent and avoid bcrypt limits
@@ -95,6 +95,86 @@ def verify_scan(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def detect_qr(request):
+    """
+    Endpoint receives camera frames as base64 images from the frontend,
+    detects and decodes QR codes using pyzbar (lightweight, no GPU needed).
+    If valid, automatically authenticates the device.
+    """
+    import base64
+    from PIL import Image
+    from pyzbar.pyzbar import decode as pyzbar_decode
+    import io
+    
+    data = request.data
+    image_b64 = data.get('image')
+    device_id = data.get('device_id')
+    
+    if not image_b64 or not device_id:
+        return Response({"detail": "Missing image or device_id"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    device_id = device_id.strip()
+    
+    # 1. Decode base64 image using PIL (no OpenCV needed)
+    try:
+        if ',' in image_b64:
+            image_b64 = image_b64.split(',')[1]
+        img_bytes = base64.b64decode(image_b64)
+        img = Image.open(io.BytesIO(img_bytes))
+    except Exception as e:
+        return Response({"detail": f"Failed to decode image: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    # 2. Decode QR codes using pyzbar
+    try:
+        decoded_results = pyzbar_decode(img)
+        
+        if not decoded_results:
+            return Response({"detail": "No QR code detected"}, status=status.HTTP_404_NOT_FOUND)
+            
+        decoded_text = decoded_results[0].data.decode('utf-8')
+        
+        if not decoded_text:
+            return Response({"detail": "QR code detected, but failed to decode"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            
+        # 3. Extract token from URL or raw text
+        token = decoded_text
+        try:
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(decoded_text)
+            queries = parse_qs(parsed_url.query)
+            if 'token' in queries:
+                token = queries['token'][0]
+        except Exception:
+            pass
+            
+        # 4. Verify token against today's expected token
+        expected_token = generate_daily_token()
+        if token != expected_token:
+            return Response({"detail": "Invalid or expired QR code token"}, status=status.HTTP_403_FORBIDDEN)
+            
+        # 5. Find device in database
+        user = Client.objects.filter(device_id__iexact=device_id).first()
+        if user:
+            return Response({
+                "status": "logged_in",
+                "user": user.full_name_cl,
+                "id": user.id,
+                "token": token
+            })
+        else:
+            return Response({
+                "status": "unregistered",
+                "token": token
+            })
+            
+    except Exception as e:
+        import traceback
+        print(f"pyzbar QR processing failed: {traceback.format_exc()}")
+        return Response({"detail": f"QR scanning failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def login(request):
     """Manual login with phone and password."""
     data = request.data
@@ -102,11 +182,14 @@ def login(request):
     password = data.get('password')
     device_id = data.get('device_id')
     
+    if phone:
+        phone = phone.strip()
+
     if not phone or not password:
         return Response({"detail": "Phone and password required"}, status=status.HTTP_400_BAD_REQUEST)
         
     # Updated Screen Authentication: must be an admin
-    admin_screen = Admin.objects.filter(username=phone).first()
+    admin_screen = Admin.objects.filter(username__iexact=phone).first()
     if admin_screen and pwd_context.verify(hashlib.sha256(password.encode('utf-8')).hexdigest(), admin_screen.password_hash):
         return Response({
             "status": "success",
@@ -119,9 +202,9 @@ def login(request):
     try:
         # Multi-identifier login: username (full_name_cl), phone, or email
         user = Client.objects.filter(
-            Q(full_name_cl=phone) | 
-            Q(phone_cl=phone) | 
-            Q(email_cl=phone)
+            Q(full_name_cl__iexact=phone) | 
+            Q(phone_cl__iexact=phone) | 
+            Q(email_cl__iexact=phone)
         ).first()
         
         if not user:
@@ -185,6 +268,11 @@ def signup(request):
     password = data.get('password')
     device_id = data.get('device_id')
     photo = request.FILES.get('photo')
+
+    if phone:
+        phone = phone.strip()
+    if email:
+        email = email.strip()
 
     print(f"DEBUG: Signup request received for phone: {phone}")
     print(f"DEBUG: Device ID: {device_id}")
@@ -736,18 +824,26 @@ def admin_login(request):
     """Admin login with credentials from DB."""
     username = request.data.get('username')
     password = request.data.get('password')
+    login_type = request.data.get('login_type', 'admin')  # 'admin' or 'screen'
     
-    admin = Admin.objects.filter(username=username).first()
+    if username:
+        username = username.strip()
+    
+    admin = Admin.objects.filter(username__iexact=username).first()
     if admin:
         # We expect double hashing on frontend for user login, but admin might be simpler or same
         # Let's stay consistent: frontend sends plain password, we hash sha256 then verify with pbkdf2
         pw_to_check = hashlib.sha256(password.encode('utf-8')).hexdigest()
         if pwd_context.verify(pw_to_check, admin.password_hash):
+            config = SessionConfig.get_config()
+            session_hours = config.screen_session_hours if login_type == 'screen' else config.admin_session_hours
             return Response({
                 "status": "success",
                 "token": f"token-{admin.id}-{admin.admin_level}",
                 "user": admin.username,
-                "admin_level": admin.admin_level
+                "admin_level": admin.admin_level,
+                "session_duration_hours": session_hours,
+                "login_timestamp": timezone.now().isoformat()
             })
             
     return Response({"detail": "Access Denied: Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -1147,10 +1243,8 @@ def get_master_history(request):
     return Response(combined)
 
 @api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
 def manage_game_types(request):
-    if not check_admin_role(request, "super_admin"):
-        return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
-    
     if request.method == 'GET':
         gtypes = GameType.objects.all().order_by('name')
         return Response([{
@@ -1160,8 +1254,10 @@ def manage_game_types(request):
             "station_count": g.station_count,
             "description": g.description
         } for g in gtypes])
-    
+        
     if request.method == 'POST':
+        if not check_admin_role(request, "super_admin"):
+            return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
         data = request.data
         gtype = GameType.objects.create(
             name=data.get('name'),
@@ -1281,3 +1377,78 @@ def admin_detail(request, pk):
              return Response({"detail": "Cannot delete master admin"}, status=status.HTTP_400_BAD_REQUEST)
         admin.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'PUT'])
+def manage_session_config(request):
+    """View or update session duration settings. Super admin only."""
+    if not check_admin_role(request, "super_admin"):
+        return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+    
+    config = SessionConfig.get_config()
+    
+    if request.method == 'GET':
+        return Response({
+            "admin_session_hours": config.admin_session_hours,
+            "screen_session_hours": config.screen_session_hours,
+            "updated_at": config.updated_at
+        })
+    
+    if request.method == 'PUT':
+        data = request.data
+        admin_hours = data.get('admin_session_hours')
+        screen_hours = data.get('screen_session_hours')
+        
+        if admin_hours is not None:
+            admin_hours = float(admin_hours)
+            if admin_hours < 0.5 or admin_hours > 168:  # Min 30min, Max 1 week
+                return Response({"detail": "Admin session must be between 0.5 and 168 hours"}, status=status.HTTP_400_BAD_REQUEST)
+            config.admin_session_hours = admin_hours
+        
+        if screen_hours is not None:
+            screen_hours = float(screen_hours)
+            if screen_hours < 1 or screen_hours > 168:
+                return Response({"detail": "Screen session must be between 1 and 168 hours"}, status=status.HTTP_400_BAD_REQUEST)
+            config.screen_session_hours = screen_hours
+        
+        config.save()
+        return Response({
+            "status": "success",
+            "admin_session_hours": config.admin_session_hours,
+            "screen_session_hours": config.screen_session_hours
+        })
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def validate_session(request):
+    """Validates if a session is still active based on login timestamp and configured duration."""
+    login_timestamp = request.data.get('login_timestamp')
+    session_type = request.data.get('session_type', 'admin')  # 'admin' or 'screen'
+    
+    if not login_timestamp:
+        return Response({"valid": False, "reason": "No login timestamp provided"})
+    
+    try:
+        from datetime import datetime
+        login_time = datetime.fromisoformat(login_timestamp)
+        if timezone.is_naive(login_time):
+            login_time = timezone.make_aware(login_time)
+        
+        config = SessionConfig.get_config()
+        max_hours = config.screen_session_hours if session_type == 'screen' else config.admin_session_hours
+        elapsed = (timezone.now() - login_time).total_seconds() / 3600
+        
+        if elapsed > max_hours:
+            return Response({
+                "valid": False,
+                "reason": "Session expired",
+                "elapsed_hours": round(elapsed, 2),
+                "max_hours": max_hours
+            })
+        
+        return Response({
+            "valid": True,
+            "remaining_hours": round(max_hours - elapsed, 2),
+            "max_hours": max_hours
+        })
+    except Exception as e:
+        return Response({"valid": False, "reason": str(e)})

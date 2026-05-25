@@ -10,8 +10,11 @@ import { ChevronLeft, Camera, Upload, CheckCircle2, Loader2, Phone, Lock, User }
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
 import ThemeToggle from '@/components/ThemeToggle'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 export default function ProfilePage() {
+    const { t } = useTranslation()
     const router = useRouter()
     const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -149,7 +152,7 @@ export default function ProfilePage() {
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
                         <ChevronLeft size={20} />
                     </Button>
-                    <h1 className="text-sm font-black uppercase">Edit Profile</h1>
+                    <h1 className="text-sm font-black uppercase">{t('profile.editProfile', 'Edit Profile')}</h1>
                 </div>
                 <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
             </header>
@@ -178,17 +181,17 @@ export default function ProfilePage() {
                                     className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity"
                                 >
                                     <Camera size={20} className="text-white mb-1" />
-                                    <span className="text-[8px] font-black uppercase">Change</span>
+                                    <span className="text-[8px] font-black uppercase">{t('profile.change', 'Change')}</span>
                                 </button>
                             </div>
                         </div>
-                        <CardTitle className="text-xl font-black">Personal Info</CardTitle>
-                        <CardDescription className="text-xs">Manage your club identity and security</CardDescription>
+                        <CardTitle className="text-xl font-black">{t('profile.personalInfo', 'Personal Info')}</CardTitle>
+                        <CardDescription className="text-xs">{t('profile.manageIdentity', 'Manage your club identity and security')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">First Name</Label>
+                                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">{t('profile.firstName', 'First Name')}</Label>
                                 <Input 
                                     id="firstName"
                                     value={formData.firstName}
@@ -197,7 +200,7 @@ export default function ProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Last Name</Label>
+                                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">{t('profile.lastName', 'Last Name')}</Label>
                                 <Input 
                                     id="lastName"
                                     value={formData.lastName}
@@ -207,7 +210,7 @@ export default function ProfilePage() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Phone Number (Connection)</Label>
+                            <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">{t('profile.phone', 'Phone Number (Connection)')}</Label>
                             <div className="relative">
                                 <Phone size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                 <Input 
@@ -219,10 +222,10 @@ export default function ProfilePage() {
                             </div>
                         </div>
                         <div className={cn("pt-4 space-y-4 border-t", isDark ? 'border-white/5' : 'border-black/5')}>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Change Password</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">{t('profile.changePassword', 'Change Password')}</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">New Password</Label>
+                                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">{t('profile.newPassword', 'New Password')}</Label>
                                     <div className="relative">
                                         <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                         <Input 
@@ -236,7 +239,7 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Confirm</Label>
+                                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">{t('profile.confirm', 'Confirm')}</Label>
                                     <div className="relative">
                                         <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                         <Input 
@@ -259,7 +262,7 @@ export default function ProfilePage() {
                             className="w-full bg-primary text-black font-black uppercase tracking-widest h-12 rounded-2xl flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
-                            Save Changes
+                            {t('profile.saveChanges', 'Save Changes')}
                         </Button>
                     </CardFooter>
                 </Card>

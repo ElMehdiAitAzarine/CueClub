@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
 import ThemeToggle from '@/components/ThemeToggle'
+import LanguageToggle from '@/components/LanguageToggle'
 
 interface MenuItem {
     id: number | string;
@@ -74,7 +75,11 @@ const getCategoryColor = (category: string) => {
     }
 }
 
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
+
 export default function MenuPage() {
+    const { t } = useTranslation()
     const router = useRouter()
     const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const [menuItems, setMenuItems] = useState<MenuItem[]>([])
@@ -284,19 +289,20 @@ export default function MenuPage() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => router.back()}
-                        className="rounded-full hover:bg-white/5"
+                        className={cn("rounded-full", isDark ? "hover:bg-white/5" : "hover:bg-black/5")}
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={20} className={isDark ? "text-white" : "text-[#1A1A1A]"} />
                     </Button>
                     <div className="text-center">
-                        <h1 className="text-lg font-black uppercase tracking-[0.2em] italic">Club Menu</h1>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Member Service</p>
+                        <h1 className="text-lg font-black uppercase tracking-[0.2em] italic">{t('menu.clubMenu', 'Club Menu')}</h1>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{t('menu.memberService', 'Member Service')}</p>
                     </div>
                     <div className="flex items-center gap-4">
+                        <LanguageToggle />
                         <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
                         <button 
                             onClick={() => setShowHistory(true)}
-                            className="p-2 rounded-full hover:bg-white/5 transition-colors relative"
+                            className={cn("p-2 rounded-full transition-colors relative", isDark ? "hover:bg-white/5" : "hover:bg-black/5")}
                         >
                             <BarChart2 size={20} className="text-muted-foreground" />
                             {userOrders.length > 0 && (
@@ -320,13 +326,13 @@ export default function MenuPage() {
                 {/* Guest Call to Action */}
                 {/* Guest Mode Section / Welcome */}
                 {!userId ? (
-                    <section className="bg-white/[0.03] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group">
+                    <section className={cn("p-8 rounded-[2.5rem] relative overflow-hidden group border", isDark ? "bg-white/[0.03] border-white/5" : "bg-white border-[#D5D0C8]")}>
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Users size={80} />
+                            <Users size={80} className={isDark ? "text-white" : "text-black"} />
                         </div>
                         <div className="relative z-10 space-y-6">
                             <div>
-                                <h2 className="text-xl font-black uppercase tracking-tighter italic text-white flex items-center gap-3">
+                                <h2 className={cn("text-xl font-black uppercase tracking-tighter italic flex items-center gap-3", isDark ? "text-white" : "text-[#1A1A1A]")}>
                                     <div className="w-2 h-8 bg-primary rounded-full" />
                                     Guest Mode
                                 </h2>
@@ -339,7 +345,7 @@ export default function MenuPage() {
                                     placeholder="Enter Your Full Name"
                                     value={guestNameInput}
                                     onChange={(e) => setGuestNameInput(e.target.value)}
-                                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 h-14 text-sm font-bold focus:outline-none focus:border-primary/50 transition-all text-white placeholder:text-white/20"
+                                    className={cn("flex-1 border rounded-2xl px-6 h-14 text-sm font-bold focus:outline-none focus:border-primary/50 transition-all", isDark ? "bg-white/5 border-white/10 text-white placeholder:text-white/20" : "bg-[#E8E4DC] border-transparent text-[#1A1A1A] placeholder:text-[#8A857E]")}
                                 />
                                 <Button 
                                     onClick={async () => {
@@ -370,15 +376,17 @@ export default function MenuPage() {
                                 </Button>
                             </div>
 
-                            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Already have an account?</p>
-                                <Button 
-                                    variant="link" 
-                                    onClick={() => router.push('/signup')}
-                                    className="text-primary text-[9px] font-black uppercase tracking-widest h-auto p-0"
-                                >
-                                    Member Login
-                                </Button>
+                            <div className={cn("pt-4 border-t", isDark ? "border-white/5" : "border-[#D5D0C8]")}>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Already have an account?</p>
+                                    <Button 
+                                        variant="link" 
+                                        onClick={() => router.push('/signup')}
+                                        className="text-primary text-[9px] font-black uppercase tracking-widest h-auto p-0"
+                                    >
+                                        Member Login
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -386,10 +394,10 @@ export default function MenuPage() {
                     <section className="bg-primary/5 border border-primary/20 p-6 rounded-[2rem] flex items-center justify-between">
                         <div>
                             <p className="text-[10px] text-primary font-black uppercase tracking-widest">Welcome back,</p>
-                            <h2 className="text-xl font-black uppercase italic text-white">{typeof window !== 'undefined' ? localStorage.getItem('cueclub_user_name') : ''}</h2>
+                            <h2 className={cn("text-xl font-black uppercase italic", isDark ? "text-white" : "text-[#1A1A1A]")}>{typeof window !== 'undefined' ? localStorage.getItem('cueclub_user_name') : ''}</h2>
                         </div>
                         {isGuest && (
-                            <span className="bg-white/5 text-white/40 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-white/5">
+                            <span className={cn("text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border", isDark ? "bg-white/5 border-white/5 text-white/40" : "bg-black/5 border-black/5 text-[#8A857E]")}>
                                 Guest Session
                             </span>
                         )}
@@ -419,7 +427,7 @@ export default function MenuPage() {
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden bg-white/5 border border-white/5 rounded-[2rem] p-6"
+                                    className={cn("overflow-hidden rounded-[2rem] p-6 border", isDark ? "bg-white/5 border-white/5" : "bg-[#EFECE5] border-[#D5D0C8]")}
                                 >
                                     <div className="grid grid-cols-5 gap-3">
                                         {Array.from({ length: 25 }, (_, i) => i + 1).map(num => {
@@ -436,8 +444,9 @@ export default function MenuPage() {
                                                         "h-12 rounded-xl flex items-center justify-center text-xs font-black transition-all border",
                                                         isMe ? "bg-primary border-primary text-black" :
                                                         isTaken ? "bg-red-500/10 border-red-500/20 text-red-500/50 cursor-not-allowed" :
-                                                        selectedCafeTable === num ? "bg-white/20 border-white/40 text-white" :
-                                                        "bg-white/5 border-white/10 text-muted-foreground hover:border-white/20"
+                                                        selectedCafeTable === num 
+                                                            ? (isDark ? "bg-white/20 border-white/40 text-white" : "bg-[#D5D0C8] border-[#B0AAA0] text-[#1A1A1A]") 
+                                                            : (isDark ? "bg-white/5 border-white/10 text-muted-foreground hover:border-white/20" : "bg-white border-[#D5D0C8] text-[#4A4540] hover:border-[#B0AAA0]")
                                                     )}
                                                 >
                                                     {isMe ? <Check size={16} /> : num}
@@ -445,7 +454,7 @@ export default function MenuPage() {
                                             )
                                         })}
                                     </div>
-                                    <p className="text-[8px] text-muted-foreground uppercase text-center mt-6 tracking-[0.2em] font-bold italic">Select where you are sitting for accurate delivery</p>
+                                    <p className="text-[8px] text-muted-foreground uppercase text-center mt-6 tracking-[0.2em] font-bold italic">{t('userHome.selectSeat', 'Select where you are sitting for accurate delivery')}</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -456,7 +465,7 @@ export default function MenuPage() {
                 {userId && pendingOrders.length > 0 && (
                     <section className="space-y-4 animate-in fade-in slide-in-from-top duration-500">
                         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary flex items-center gap-2">
-                            <HistoryIcon size={14} /> Active Orders
+                            <HistoryIcon size={14} /> {t('userHome.activeOrders', 'Active Orders')}
                         </h2>
                         <div className="space-y-2">
                             {pendingOrders.map(order => (
@@ -467,7 +476,7 @@ export default function MenuPage() {
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold">{order.name}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{order.price} DH • Pending</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{order.price} DH • {t('userHome.pending', 'Pending')}</p>
                                         </div>
                                     </div>
                                     <Button 
@@ -493,10 +502,10 @@ export default function MenuPage() {
                                 "px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
                                 activeCategory === cat 
                                     ? "bg-primary border-primary text-black shadow-lg shadow-primary/20" 
-                                    : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                                    : (isDark ? "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10" : "bg-white border-[#D5D0C8] text-[#6B6560] hover:bg-[#EFECE5]")
                             )}
                         >
-                            {cat}
+                            {cat === 'All' ? t('menu.all', 'All') : cat}
                         </button>
                     ))}
                 </div>
@@ -530,7 +539,7 @@ export default function MenuPage() {
                                         {/* Main Details in Row */}
                                         <div className="flex-1 min-w-0 md:grid md:grid-cols-4 md:items-center gap-6">
                                             <div className="md:col-span-2">
-                                                <h3 className="font-black uppercase tracking-tight text-white flex items-center gap-3">
+                                                <h3 className={cn("font-black uppercase tracking-tight flex items-center gap-3", isDark ? "text-white" : "text-[#1A1A1A]")}>
                                                     {item.name}
                                                     <span className="text-[10px] font-black text-primary italic">★ {item.popularity}</span>
                                                 </h3>
@@ -538,25 +547,25 @@ export default function MenuPage() {
                                             </div>
                                             
                                             <div className="hidden md:block text-center">
-                                                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">
+                                                <span className={cn("px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border", isDark ? "bg-white/5 border-white/5 text-white/40" : "bg-black/5 border-black/5 text-[#8A857E]")}>
                                                     {item.category}
                                                 </span>
                                             </div>
 
                                             <div className="flex items-center justify-between md:justify-end gap-6 mt-3 md:mt-0">
-                                                <span className="text-white font-black text-base">{item.price} <span className="text-[10px] opacity-40">DH</span></span>
+                                                <span className={cn("font-black text-base", isDark ? "text-white" : "text-[#1A1A1A]")}>{item.price} <span className="text-[10px] opacity-40">DH</span></span>
                                                 
                                                 {userId ? (
-                                                    <div className="flex items-center gap-1 bg-black/40 rounded-xl p-1 border border-white/5">
+                                                    <div className={cn("flex items-center gap-1 rounded-xl p-1 border", isDark ? "bg-black/40 border-white/5" : "bg-[#E8E4DC] border-[#D5D0C8]")}>
                                                         {qty > 0 && (
                                                             <>
                                                                 <button 
                                                                     onClick={() => updateCart(String(item.id), -1)}
-                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
+                                                                    className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-colors", isDark ? "hover:bg-white/10" : "hover:bg-black/5")}
                                                                 >
-                                                                    <Minus size={14} />
+                                                                    <Minus size={14} className={isDark ? "text-white" : "text-[#1A1A1A]"} />
                                                                 </button>
-                                                                <span className="w-6 text-center text-xs font-black">{qty}</span>
+                                                                <span className={cn("w-6 text-center text-xs font-black", isDark ? "text-white" : "text-[#1A1A1A]")}>{qty}</span>
                                                             </>
                                                         )}
                                                         <button 
@@ -564,16 +573,16 @@ export default function MenuPage() {
                                                             className={cn(
                                                                 "h-8 rounded-lg flex items-center justify-center transition-all px-3",
                                                                 qty > 0 
-                                                                    ? "w-8 hover:bg-white/10" 
+                                                                    ? (isDark ? "w-8 hover:bg-white/10 text-white" : "w-8 hover:bg-black/5 text-[#1A1A1A]") 
                                                                     : "bg-primary text-black font-black uppercase tracking-widest text-[9px]"
                                                             )}
                                                         >
-                                                            {qty > 0 ? <Plus size={14} /> : 'Add'}
+                                                            {qty > 0 ? <Plus size={14} /> : t('menu.add', 'Add')}
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <div className="bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
-                                                        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Sign in to order</p>
+                                                    <div className={cn("px-3 py-1.5 rounded-xl border", isDark ? "bg-white/5 border-white/5" : "bg-[#E8E4DC]/50 border-[#D5D0C8]")}>
+                                                        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{t('menu.signInToOrder', 'Sign in to order')}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -597,7 +606,7 @@ export default function MenuPage() {
                     >
                         <div className="bg-primary shadow-[0_20px_50px_-10px_rgba(234,88,12,0.5)] rounded-[2.5rem] p-4 flex items-center justify-between border-t border-white/20">
                             <div className="pl-4">
-                                <p className="text-black/60 text-[9px] font-black uppercase tracking-widest">Total Bill</p>
+                                <p className="text-black/60 text-[9px] font-black uppercase tracking-widest">{t('menu.total', 'Total Bill')}</p>
                                 <p className="text-black text-xl font-black">{totalPrice} <span className="text-xs">DH</span></p>
                             </div>
                             <Button 
@@ -609,7 +618,7 @@ export default function MenuPage() {
                                     <Loader2 className="animate-spin" size={18} />
                                 ) : (
                                     <>
-                                        Confirm Selection
+                                        {t('menu.confirmOrder', 'Confirm Selection')}
                                         <div className="bg-white/10 p-2 rounded-full group-hover:bg-primary group-hover:text-black transition-all">
                                             <CheckCircle2 size={18} />
                                         </div>
@@ -640,16 +649,16 @@ export default function MenuPage() {
                         >
                             <div className="flex items-center justify-between mb-10">
                                 <div>
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter italic text-white">Order History</h2>
+                                    <h2 className={cn("text-2xl font-black uppercase tracking-tighter italic", isDark ? "text-white" : "text-[#1A1A1A]")}>Order History</h2>
                                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em]">Full Session Ledger</p>
                                 </div>
                                 <Button 
                                     variant="ghost" 
                                     size="icon" 
                                     onClick={() => setShowHistory(false)}
-                                    className="rounded-full hover:bg-white/5"
+                                    className={cn("rounded-full", isDark ? "hover:bg-white/5" : "hover:bg-black/5")}
                                 >
-                                    <XCircle size={24} />
+                                    <XCircle size={24} className="text-muted-foreground hover:text-primary transition-colors" />
                                 </Button>
                             </div>
 
@@ -659,12 +668,12 @@ export default function MenuPage() {
                                 </div>
                             ) : userOrders.length === 0 ? (
                                 <div className="h-64 flex flex-col items-center justify-center opacity-20 space-y-4">
-                                    <BarChart2 size={64} />
+                                    <BarChart2 size={64} className={isDark ? "text-white" : "text-black"} />
                                     <p className="text-xs font-black uppercase tracking-widest text-center">No orders recorded yet</p>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
+                                    <div className={cn("rounded-3xl p-6 border", isDark ? "bg-white/5 border-white/5" : "bg-[#EFECE5] border-[#D5D0C8]")}>
                                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total Session Spend</p>
                                         <p className="text-3xl font-black text-primary">
                                             {userOrders.reduce((sum, o) => sum + (o.status !== 'cancelled' ? o.price : 0), 0)} <span className="text-sm">DH</span>
@@ -674,15 +683,16 @@ export default function MenuPage() {
                                     <div className="space-y-4">
                                         <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Recent Timeline</h3>
                                         {userOrders.map((order) => (
-                                            <div key={order.id} className="relative pl-6 pb-2 border-l border-white/10 last:border-0 ml-2">
+                                            <div key={order.id} className={cn("relative pl-6 pb-2 border-l last:border-0 ml-2", isDark ? "border-white/10" : "border-[#D5D0C8]")}>
                                                 <div className={cn(
-                                                    "absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full border-2 border-[#0A0A0A]",
+                                                    "absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full border-2",
+                                                    isDark ? "border-[#0A0A0A]" : "border-[#F7F5F0]",
                                                     order.status === 'pending' ? "bg-primary animate-pulse" :
                                                     order.status === 'served' ? "bg-emerald-500" : "bg-red-500"
                                                 )} />
-                                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-2">
+                                                <div className={cn("border rounded-2xl p-4 space-y-2", isDark ? "bg-white/[0.02] border-white/5" : "bg-white border-[#D5D0C8]")}>
                                                     <div className="flex justify-between items-start">
-                                                        <p className="text-sm font-bold tracking-tight text-white">{order.name}</p>
+                                                        <p className={cn("text-sm font-bold tracking-tight", isDark ? "text-white" : "text-[#1A1A1A]")}>{order.name}</p>
                                                         <div className="text-right">
                                                             <p className="text-xs font-black text-primary">{order.price} DH</p>
                                                             <p className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mt-1 italic">

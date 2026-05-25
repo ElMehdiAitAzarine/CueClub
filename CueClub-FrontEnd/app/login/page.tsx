@@ -127,6 +127,8 @@ export default function LoginPage() {
                                         <Input
                                             id="phone"
                                             type="text"
+                                            autoCapitalize="none"
+                                            autoCorrect="off"
                                             placeholder="Phone, email or name"
                                             value={formData.phone}
                                             onChange={handleInputChange}
@@ -154,13 +156,18 @@ export default function LoginPage() {
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="px-8 pb-8 pt-4">
+                            <CardFooter className="px-8 pb-8 pt-4 flex flex-col gap-4">
                                 <Button type="submit" disabled={loading} className="w-full h-14 text-lg font-bold rounded-2xl group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300">
                                     <span className="relative z-10 flex items-center">
                                         {loading ? <Loader2 className="animate-spin mr-2" /> : "Authorize Access"}
                                         {!loading && <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />}
                                     </span>
                                 </Button>
+                                <div className="text-center mt-2">
+                                    <Link href="/signup" className="text-xs uppercase tracking-widest text-primary hover:underline font-black">
+                                        Subscribe / Create Account
+                                    </Link>
+                                </div>
                             </CardFooter>
                         </form>
                     </Card>
@@ -168,7 +175,7 @@ export default function LoginPage() {
                     <p className="text-center text-sm text-muted-foreground">
                         New to the club?{' '}
                         <Link href="/signup" className="text-primary hover:text-primary/80 transition-colors font-semibold underline underline-offset-4 decoration-primary/30">
-                            Claim your membership
+                            Subscribe & claim your membership
                         </Link>
                     </p>
                 </div>

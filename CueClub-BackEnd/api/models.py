@@ -133,3 +133,23 @@ class Admin(models.Model):
 
     class Meta:
         db_table = 'admin_user'
+
+class SessionConfig(models.Model):
+    """Singleton configuration for session durations (in hours)."""
+    id = models.AutoField(primary_key=True)
+    admin_session_hours = models.FloatField(default=6.0)  # Admin panel session duration
+    screen_session_hours = models.FloatField(default=12.0)  # Screen display session duration
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'session_config'
+        managed = True
+
+    @classmethod
+    def get_config(cls):
+        """Returns the singleton config, creating it with defaults if needed."""
+        config, _ = cls.objects.get_or_create(pk=1)
+        return config
+
+    def __str__(self):
+        return f"Session Config: Admin={self.admin_session_hours}h, Screen={self.screen_session_hours}h"

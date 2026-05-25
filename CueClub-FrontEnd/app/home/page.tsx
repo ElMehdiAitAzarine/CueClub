@@ -22,6 +22,9 @@ import {
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
 import ThemeToggle from '@/components/ThemeToggle'
+import LanguageToggle from '@/components/LanguageToggle'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 interface Player {
     id: number;
@@ -49,6 +52,7 @@ interface CafeOccupation {
 }
 
 export default function HomePage() {
+    const { t } = useTranslation()
     const router = useRouter()
     const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const [userName, setUserName] = useState<string | null>(null)
@@ -200,13 +204,14 @@ export default function HomePage() {
             <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b p-4 flex justify-between items-center", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase text-muted-foreground mr-2 hidden sm:block">{userName}</span>
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className="rounded-full hover:bg-white/5 transition-colors">
+                    <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className={cn("rounded-full transition-colors", isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-[#1A1A1A]")}>
                         <User size={18} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-full hover:text-destructive transition-colors">
+                    <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-full hover:text-destructive transition-colors text-muted-foreground">
                         <LogOut size={18} />
                     </Button>
                     <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
+                    <LanguageToggle />
                 </div>
             </header>
 
@@ -220,11 +225,11 @@ export default function HomePage() {
                                 <div className="flex items-center gap-4">
                                     <PlayCircle size={32} className="animate-pulse" />
                                     <div>
-                                        <h2 className="text-xl font-black uppercase">Your Table is Ready!</h2>
+                                        <h2 className="text-xl font-black uppercase">{t('userHome.yourTableReady', 'Your Table is Ready!')}</h2>
                                         <p className="text-black/70 text-[10px] font-bold uppercase">{userNotification.timer}s remaining</p>
                                     </div>
                                 </div>
-                                <Button onClick={() => handleConfirmPlay(userNotification.session_id)} className="bg-black text-white h-12 px-8 rounded-xl font-black uppercase text-xs">Confirm Now</Button>
+                                <Button onClick={() => handleConfirmPlay(userNotification.session_id)} className="bg-black text-white h-12 px-8 rounded-xl font-black uppercase text-xs">{t('userHome.confirmNow', 'Confirm Now')}</Button>
                             </div>
                         </div>
                     </section>
@@ -238,11 +243,11 @@ export default function HomePage() {
                                 <div className="flex items-center gap-4">
                                     <Coffee size={32} />
                                     <div>
-                                        <h2 className="text-xl font-black uppercase">Still at Table {myCafeTable.number}?</h2>
-                                        <p className="text-black/70 text-[10px] font-bold uppercase tracking-widest">Please confirm your stay to keep the table</p>
+                                        <h2 className="text-xl font-black uppercase">{t('userHome.stillAtTable', 'Still at Table')} {myCafeTable.number}?</h2>
+                                        <p className="text-black/70 text-[10px] font-bold uppercase tracking-widest">{t('userHome.yesStillHere', 'Please confirm your stay to keep the table')}</p>
                                     </div>
                                 </div>
-                                <Button onClick={() => handleConfirmOccupation(myCafeTable.number)} className="bg-black text-white h-12 px-8 rounded-xl font-black uppercase text-xs">Yes, Still Here</Button>
+                                <Button onClick={() => handleConfirmOccupation(myCafeTable.number)} className="bg-black text-white h-12 px-8 rounded-xl font-black uppercase text-xs">{t('userHome.yesStillHere', 'Yes, Still Here')}</Button>
                             </div>
                         </div>
                     </section>
@@ -251,12 +256,12 @@ export default function HomePage() {
                 <section className="flex flex-col gap-4">
                     <Button onClick={() => router.push('/menu')} className="h-24 rounded-3xl bg-secondary/10 border border-secondary/20 flex flex-col gap-2">
                         <Utensils size={24} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Command Menu</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest">{t('userHome.menu', 'Command Menu')}</span>
                     </Button>
                 </section>
 
                 <section className="space-y-4">
-                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground px-2">Living Arena Status</h3>
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground px-2">{t('userHome.livingArena', 'Living Arena Status')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {tables.map(table => (
                             <Card key={table.id} className={cn("rounded-[2rem] overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
@@ -264,7 +269,7 @@ export default function HomePage() {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <CardTitle className="text-xl font-black italic">{table.name}</CardTitle>
-                                            <CardDescription className="text-[10px] uppercase font-black tracking-[0.2em] text-white/40">Table #{table.number}</CardDescription>
+                                            <CardDescription className={cn("text-[10px] uppercase font-black tracking-[0.2em]", isDark ? "text-white/40" : "text-[#4A4540]/60")}>{t('userHome.table', 'Table')} #{table.number}</CardDescription>
                                         </div>
                                         <div className="bg-primary/10 border border-primary/30 px-3 py-1 rounded-full">
                                             <span className="text-[9px] font-black uppercase text-primary tracking-widest">{table.game_type}</span>
@@ -278,7 +283,7 @@ export default function HomePage() {
                                                 "flex items-center justify-between p-3 rounded-2xl border",
                                                 player.status === 'notified' ? "bg-primary/10 border-primary/30" : 
                                                 player.status === 'playing' ? "bg-blue-500/10 border-blue-500/30" : 
-                                                (player.status === 'completed' || player.status === 'cancelled') ? "bg-white/[0.01] border-white/5 opacity-40" : 
+                                                (player.status === 'completed' || player.status === 'cancelled') ? (isDark ? "bg-white/[0.01] border-white/5 opacity-40" : "bg-black/[0.01] border-black/[0.05] opacity-40") : 
                                                 isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]"
                                             )}>
                                                 <div className="flex items-center gap-3">
@@ -292,7 +297,7 @@ export default function HomePage() {
                                                             size="sm"
                                                             className="h-7 text-[8px] bg-blue-600 hover:bg-blue-500 font-black px-2 rounded-lg"
                                                         >
-                                                            READY
+                                                            {t('userHome.ready', 'READY')}
                                                         </Button>
                                                     )}
                                                     {player.id === parseInt(userId!) && player.status === 'playing' && (
@@ -302,7 +307,7 @@ export default function HomePage() {
                                                             variant="outline"
                                                             className="h-7 text-[8px] border-red-500/50 text-red-500 hover:bg-red-500/10 font-black px-2 rounded-lg"
                                                         >
-                                                            FINISH
+                                                            {t('userHome.finish', 'FINISH')}
                                                         </Button>
                                                     )}
                                                     {player.id === parseInt(userId!) && (
@@ -319,7 +324,7 @@ export default function HomePage() {
                                         disabled={joining === table.id || table.players.some(p => p.id === parseInt(userId!))}
                                         className="w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px] bg-primary text-black"
                                     >
-                                        JOIN LINE
+                                        {t('userHome.joinLine', 'JOIN LINE')}
                                     </Button>
                                 </CardFooter>
                             </Card>

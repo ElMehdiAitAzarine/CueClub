@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('daily-qr', views.get_daily_qr, name='daily_qr'),
     path('verify-scan', views.verify_scan, name='verify_scan'),
+    path('detect-qr', views.detect_qr, name='detect_qr'),
     path('signup', views.signup, name='signup'),
     path('login', views.login, name='login'),
     path('game-status', views.get_game_status, name='game_status'),
@@ -39,4 +40,6 @@ urlpatterns = [
     path('sys-admin/game-types/<int:pk>', views.game_type_detail, name='game_type_detail'),
     path('sys-admin/admins', views.manage_admins, name='manage_admins'),
     path('sys-admin/admins/<int:pk>', views.admin_detail, name='admin_detail'),
+    path('sys-admin/session-config', views.manage_session_config, name='session_config'),
+    path('validate-session', views.validate_session, name='validate_session'),
 ]

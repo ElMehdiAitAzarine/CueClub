@@ -2,32 +2,36 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight, ChevronRight } from 'lucide-react'
-
-const games = [
-  {
-    id: 1,
-    title: 'Billiards',
-    description: 'Precision cue sports played on professional felt with world-class equipment.',
-    image: '/images/billiards.png',
-    color: '#06B6D4', // Cyan
-  },
-  {
-    id: 2,
-    title: 'Carrom',
-    description: 'A traditional masterpiece of precision and strategy on handcrafted wooden boards.',
-    image: '/images/carrom.jpg',
-    color: '#F59E0B', // Amber
-  },
-  {
-    id: 3,
-    title: 'Darts',
-    description: 'The ultimate test of focus and accuracy on regulation competition boards.',
-    image: '/images/darts.jpg',
-    color: '#FB7185', // Rose
-  },
-]
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 export default function GamesSection() {
+  const { t } = useTranslation()
+
+  const games = [
+    {
+      id: 1,
+      title: 'Billiards',
+      description: t('landing.gamesDesc1', 'Precision cue sports played on professional felt with world-class equipment.'),
+      image: '/images/billiards.png',
+      color: '#06B6D4',
+    },
+    {
+      id: 2,
+      title: 'Carrom',
+      description: t('landing.gamesDesc2', 'A traditional masterpiece of precision and strategy on handcrafted wooden boards.'),
+      image: '/images/carrom.jpg',
+      color: '#F59E0B',
+    },
+    {
+      id: 3,
+      title: 'Darts',
+      description: t('landing.gamesDesc3', 'The ultimate test of focus and accuracy on regulation competition boards.'),
+      image: '/images/darts.jpg',
+      color: '#FB7185',
+    },
+  ]
+
   return (
     <section id="games" className="py-32 bg-[#0A0A0A] noise-texture overflow-hidden">
       <div className="container mx-auto px-6">
@@ -38,7 +42,7 @@ export default function GamesSection() {
             whileInView={{ opacity: 1, x: 0 }}
             className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter"
           >
-            OUR <span className="text-gradient">ARENAS</span>
+            {t('landing.our', 'OUR')} <span className="text-gradient">{t('landing.arenas', 'ARENAS')}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, x: -20 }}
@@ -46,7 +50,7 @@ export default function GamesSection() {
             transition={{ delay: 0.1 }}
             className="text-lg md:text-xl text-[#A3A3A3]"
           >
-            Dive into our premium selection of precision-based games. Each arena is designed to provide an unparalleled competitive experience.
+            {t('landing.gamesIntro', 'Dive into our premium selection of precision-based games. Each arena is designed to provide an unparalleled competitive experience.')}
           </motion.p>
         </div>
 
@@ -87,7 +91,7 @@ export default function GamesSection() {
 
                   {/* Click Area / Arrow */}
                   <div className="flex items-center gap-2 text-white font-bold text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                    Enter Arena
+                    {t('landing.enterArena', 'Enter Arena')}
                     <ChevronRight className="text-white bg-primary p-1 rounded-full" size={20} />
                   </div>
                 </div>

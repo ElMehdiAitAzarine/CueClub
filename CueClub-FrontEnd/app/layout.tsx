@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: 'Cue-Club | Master the Art of Precision',
   description: 'The world\'s most exclusive destination for premium billiards, pool, carrom, and darts. Join the elite community of precision gaming.',
   icons: {
-    icon: '/icon.svg',
+    icon: '/images/logo-cueclub.png',
   },
 }
 

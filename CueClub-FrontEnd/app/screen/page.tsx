@@ -8,6 +8,9 @@ import { Loader2, Users, Gamepad2, PlayCircle, Clock, QrCode, Filter, ChevronLef
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
 import ThemeToggle from '@/components/ThemeToggle'
+import LanguageToggle from '@/components/LanguageToggle'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -46,6 +49,7 @@ interface TableStatus {
 }
 
 export default function ScreenPage() {
+    const { t } = useTranslation()
     const router = useRouter()
     const { theme, toggleTheme, isDark } = useSectionTheme('screen')
     const [tables, setTables] = useState<TableStatus[]>([])
@@ -74,12 +78,49 @@ export default function ScreenPage() {
         }
     }
 
+    const checkSessionValidity = () => {
+        const loginTimestamp = localStorage.getItem('cueclub_screen_login_timestamp')
+        const sessionDuration = parseFloat(localStorage.getItem('cueclub_screen_session_duration') || '12')
+        
+        if (!loginTimestamp) {
+            handleLogout()
+            return false
+        }
+        
+        const loginTime = new Date(loginTimestamp).getTime()
+        const now = Date.now()
+        const elapsedHours = (now - loginTime) / (1000 * 60 * 60)
+        
+        if (elapsedHours > sessionDuration) {
+            handleLogout()
+            return false
+        }
+        
+        return true
+    }
+
+    const handleLogout = () => {
+        localStorage.removeItem('cueclub_admin_token')
+        localStorage.removeItem('cueclub_admin_level')
+        localStorage.removeItem('cueclub_screen_login_timestamp')
+        localStorage.removeItem('cueclub_screen_session_duration')
+        setIsLoggedIn(false)
+        setLoading(false)
+        if (pollInterval.current) clearInterval(pollInterval.current)
+    }
+
     useEffect(() => {
         const token = localStorage.getItem('cueclub_admin_token')
         if (token) {
+            if (!checkSessionValidity()) return;
+            
             setIsLoggedIn(true)
             fetchData()
-            pollInterval.current = setInterval(fetchData, 5000)
+            pollInterval.current = setInterval(() => {
+                if (checkSessionValidity()) {
+                    fetchData()
+                }
+            }, 5000)
         } else {
             setIsLoggedIn(false)
             setLoading(false)
@@ -127,15 +168,21 @@ export default function ScreenPage() {
             const res = await fetch('/api/sys-admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(loginForm)
+                body: JSON.stringify({ ...loginForm, login_type: 'screen' })
             })
             if (res.ok) {
                 const data = await res.json()
                 localStorage.setItem('cueclub_admin_token', data.token)
                 localStorage.setItem('cueclub_admin_level', data.admin_level)
+                localStorage.setItem('cueclub_screen_login_timestamp', data.login_timestamp)
+                localStorage.setItem('cueclub_screen_session_duration', String(data.session_duration_hours))
                 setIsLoggedIn(true)
                 fetchData()
-                pollInterval.current = setInterval(fetchData, 5000)
+                pollInterval.current = setInterval(() => {
+                    if (checkSessionValidity()) {
+                        fetchData()
+                    }
+                }, 5000)
             } else {
                 alert("Invalid Admin Credentials")
             }
@@ -208,7 +255,10 @@ export default function ScreenPage() {
                     </div>
                 </div>
                 <div className="text-right">
-                    <ThemeToggle theme={theme} onToggle={toggleTheme} size="md" className="mb-4 ml-auto" />
+                    <div className="flex items-center gap-4 mb-4 justify-end">
+                        <LanguageToggle />
+                        <ThemeToggle theme={theme} onToggle={toggleTheme} size="md" />
+                    </div>
                     <p className="text-7xl font-mono font-black tabular-nums leading-none mb-2">
                         {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -248,7 +298,7 @@ export default function ScreenPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <h2 className="text-6xl font-black uppercase tracking-tight">Scan to Join</h2>
+                            <h2 className="text-6xl font-black uppercase tracking-tight">{t('screen.scanToJoin', 'Scan to Join')}</h2>
 
                             <div className="flex justify-center gap-8 pt-8">
                                 <div className={cn("flex items-center gap-4 px-8 py-4 rounded-full border", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
@@ -362,8 +412,8 @@ export default function ScreenPage() {
                                             <div className="flex-1 min-h-0 relative z-10">
                                                 {table.players.length === 0 ? (
                                                     <div className={cn("h-full flex flex-col items-center justify-center rounded-[2.5rem] border-4 border-dashed p-8 opacity-40", isDark ? 'bg-white/[0.01] border-white/5' : 'bg-[#E8E4DC]/50 border-[#D5D0C8]')}>
-                                                        <PlayCircle size={48} className="mb-4 text-white/10" />
-                                                        <p className="text-xl font-black uppercase tracking-[0.2em] italic text-center text-white/20">Operational Standby</p>
+                                                        <PlayCircle size={48} className={cn("mb-4", isDark ? "text-white/10" : "text-black/10")} />
+                                                        <p className={cn("text-xl font-black uppercase tracking-[0.2em] italic text-center", isDark ? "text-white/20" : "text-[#1A1A1A]/35")}>Operational Standby</p>
                                                     </div>
                                                 ) : (
                                                     <div className="h-full overflow-y-auto pr-4 custom-scrollbar flex flex-col gap-3">
@@ -397,7 +447,7 @@ export default function ScreenPage() {
                                                                                     "text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border",
                                                                                     player.status === 'playing' ? "bg-primary/20 border-primary/50 text-primary" :
                                                                                         player.status === 'notified' ? "bg-blue-500/20 border-blue-500/50 text-blue-400" :
-                                                                                            "bg-white/5 border-white/10 text-white/40"
+                                                                                            isDark ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-[#1A1A1A]/40"
                                                                                 )}>
                                                                                     {player.status}
                                                                                 </span>
@@ -413,7 +463,7 @@ export default function ScreenPage() {
 
                                                                     {player.recent_orders.length > 0 && (
                                                                         <div className={cn("hidden sm:block px-3 py-1.5 rounded-xl border", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
-                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                                                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", isDark ? "text-white/40" : "text-[#1A1A1A]/50")}>
                                                                                 {player.recent_orders[0].name}
                                                                             </span>
                                                                         </div>
@@ -444,8 +494,8 @@ export default function ScreenPage() {
                             </Button>
                             <div className="flex items-center gap-4 text-3xl font-black uppercase tracking-[0.3em]">
                                 <span className="text-primary">{currentPage + 1}</span>
-                                <span className="text-white/10">|</span>
-                                <span className="text-white/40">{Math.ceil(displayedTables.length / displayCount)}</span>
+                                <span className={cn(isDark ? "text-white/10" : "text-black/10")}>|</span>
+                                <span className={cn(isDark ? "text-white/40" : "text-black/40")}>{Math.ceil(displayedTables.length / displayCount)}</span>
                             </div>
                             <Button
                                 variant="outline"

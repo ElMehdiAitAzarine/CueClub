@@ -6,8 +6,12 @@ import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Send } fro
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Magnetic from './Magnetic'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 export default function Footer() {
+  const { t } = useTranslation()
+
   return (
     <footer className="relative bg-[#0A0A0A] pt-24 pb-12 overflow-hidden border-t border-white/5">
       {/* Background Grid Pattern */}
@@ -30,10 +34,10 @@ export default function Footer() {
           <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-4">
               <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">
-                JOIN THE <span className="text-gradient">INNER CIRCLE</span>
+                {t('landing.joinInnerCircle', 'JOIN THE')} <span className="text-gradient">{t('landing.innerCircle', 'INNER CIRCLE')}</span>
               </h3>
               <p className="text-[#A3A3A3] text-lg max-w-md font-medium">
-                Receive exclusive invites to leagues, private events, and professional masterclasses.
+                {t('landing.joinDesc', 'Receive exclusive invites to leagues, private events, and professional masterclasses.')}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 p-2 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
@@ -46,7 +50,7 @@ export default function Footer() {
                 <Button className="relative bg-gradient-to-br from-[#EA580C] to-[#F59E0B] text-white h-14 px-12 rounded-2xl font-black transition-all duration-500 group border-0 tracking-widest text-sm overflow-hidden shadow-[0_15px_30px_rgba(234,88,12,0.3)] hover:scale-105 active:scale-95">
                   <div className="absolute top-0 -left-[100%] w-[100%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-25deg] group-hover:animate-shine-once" />
                   <span className="relative z-10 flex items-center">
-                    SUBSCRIBE
+                    {t('landing.subscribe', 'SUBSCRIBE')}
                     <Send className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" size={18} />
                   </span>
                 </Button>
@@ -68,7 +72,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-[#A3A3A3] text-lg font-medium leading-relaxed">
-              Establishing the global benchmark for luxury cue sports and precision gaming since 2018.
+              {t('landing.establishing', 'Establishing the global benchmark for luxury cue sports and precision gaming since 2018.')}
             </p>
             <div className="flex gap-4">
               {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
@@ -86,13 +90,13 @@ export default function Footer() {
 
           {/* Column 2: Quick Links */}
           <div className="space-y-8">
-            <h4 className="text-white font-black text-xl uppercase tracking-widest">Navigation</h4>
+            <h4 className="text-white font-black text-xl uppercase tracking-widest">{t('landing.navigation', 'Navigation')}</h4>
             <ul className="space-y-4">
               {[
-                { name: 'Philosophy', href: '/#about' },
-                { name: 'Arenas', href: '/#games' },
-                { name: 'Excellence', href: '/#features' },
-                { name: 'Our Menu', href: '/menu' },
+                { name: t('landing.philosophy', 'Philosophy'), href: '/#about' },
+                { name: t('landing.arenas', 'Arenas'), href: '/#games' },
+                { name: t('landing.excellence', 'Excellence'), href: '/#features' },
+                { name: t('landing.ourMenu', 'Our Menu'), href: '/menu' },
               ].map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="text-[#A3A3A3] hover:text-white font-bold text-lg transition-colors flex items-center group">
@@ -106,7 +110,7 @@ export default function Footer() {
 
           {/* Column 3: Contact */}
           <div className="space-y-8">
-            <h4 className="text-white font-black text-xl uppercase tracking-widest">Headquarters</h4>
+            <h4 className="text-white font-black text-xl uppercase tracking-widest">{t('landing.headquarters', 'Headquarters')}</h4>
             <ul className="space-y-6">
               <li className="flex gap-4 items-start group">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
@@ -139,11 +143,11 @@ export default function Footer() {
         {/* Copyright Bar */}
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[#525252] font-bold text-sm tracking-widest uppercase">
-            &copy; 2024 CUE-CLUB GLOBAL. MASTER THE ART OF PRECISION.
+            {t('landing.copyright', '© 2024 CUE-CLUB GLOBAL. MASTER THE ART OF PRECISION.')}
           </p>
           <div className="flex gap-8">
-            <Link href="#" className="text-[#525252] hover:text-white text-xs font-bold tracking-widest uppercase transition-colors">Privacy Policy</Link>
-            <Link href="#" className="text-[#525252] hover:text-white text-xs font-bold tracking-widest uppercase transition-colors">Terms of Excellence</Link>
+            <Link href="#" className="text-[#525252] hover:text-white text-xs font-bold tracking-widest uppercase transition-colors">{t('landing.privacyPolicy', 'Privacy Policy')}</Link>
+            <Link href="#" className="text-[#525252] hover:text-white text-xs font-bold tracking-widest uppercase transition-colors">{t('landing.termsOfExcellence', 'Terms of Excellence')}</Link>
           </div>
         </div>
       </div>

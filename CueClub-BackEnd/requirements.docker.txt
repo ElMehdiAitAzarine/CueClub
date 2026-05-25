@@ -9,3 +9,5 @@ qrcode[pil]
 python-dotenv
 whitenoise
 gunicorn
+Pillow
+pyzbar

@@ -7,16 +7,21 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Play, Loader2, QrCode, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Magnetic from './Magnetic'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 export default function Hero() {
+  const { t } = useTranslation()
   const router = useRouter()
   const [isScanning, setIsScanning] = useState(false)
+  const [scannerError, setScannerError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollY } = useScroll()
 
   const yPosText = useTransform(scrollY, [0, 500], [0, 100])
 
   const handleStartPlaying = () => {
+    setScannerError(null)
     setIsScanning(true)
   }
 
@@ -26,105 +31,113 @@ export default function Hero() {
     setMounted(true)
   }, [])
 
+  const videoRef = useRef<HTMLVideoElement>(null)
+
   useEffect(() => {
     if (!isScanning) return;
 
-    let html5QrCode: any = null;
+    let stream: MediaStream | null = null;
     let isComponentMounted = true;
+    let intervalId: NodeJS.Timeout | null = null;
 
-    // Poll until AnimatePresence finishes and #reader is in the DOM
-    const initScanner = setInterval(async () => {
-      if (!isComponentMounted || !document.getElementById("reader")) return;
+    const startCamera = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 720 },
+            height: { ideal: 720 }
+          }
+        });
+        
+        if (!isComponentMounted) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
 
-      clearInterval(initScanner);
-      const { Html5Qrcode } = await import('html5-qrcode');
-      if (!isComponentMounted) return;
-      html5QrCode = new Html5Qrcode("reader");
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.setAttribute('playsinline', 'true');
+          await videoRef.current.play();
+        }
 
-      const onScanSuccess = async (decodedText: string) => {
+        // Start frame capture and detection every 600ms
+        intervalId = setInterval(captureAndDetectFrame, 600);
+      } catch (err: any) {
+        console.error("Camera access failed:", err);
+        if (isComponentMounted) {
+          setScannerError("Camera access denied or unavailable. Please grant permission.");
+        }
+      }
+    };
+
+    const captureAndDetectFrame = async () => {
+      if (!videoRef.current || !isComponentMounted) return;
+
+      const video = videoRef.current;
+      if (video.videoWidth === 0 || video.videoHeight === 0) return;
+
+      // Draw active frame to canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to JPEG base64
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      try {
+        let deviceId = localStorage.getItem('cueclub_device_id')
+        if (!deviceId) {
+          deviceId = 'dev_' + Math.random().toString(36).substr(2, 9)
+          localStorage.setItem('cueclub_device_id', deviceId)
+        }
+
+        const trimmedDeviceId = deviceId.trim();
+        const response = await fetch('/api/detect-qr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: dataUrl,
+            device_id: trimmedDeviceId
+          })
+        });
+
+        if (!response.ok) {
+          return; // Frame did not contain valid QR, try next frame
+        }
+
+        const data = await response.json();
         if (!isComponentMounted) return;
 
-        try {
-          if (html5QrCode?.isScanning) {
-            await html5QrCode.stop();
-          }
-        } catch (err) {
-          console.error("Failed to stop scanner", err);
+        if (data.status === 'logged_in') {
+          localStorage.setItem('cueclub_user_id', String(data.id));
+          localStorage.setItem('cueclub_user_name', data.user);
+          localStorage.setItem('cueclub_logged_in', 'true');
+          
+          setIsScanning(false);
+          router.push('/home');
+        } else if (data.status === 'unregistered') {
+          setIsScanning(false);
+          router.push(`/signup?token=${data.token}`);
         }
-        setIsScanning(false);
+      } catch (e) {
+        console.error("QRDet backend scan check failed:", e);
+      }
+    };
 
-        // Extract token
-        let token = decodedText;
-        try {
-          const url = new URL(decodedText);
-          const urlToken = url.searchParams.get("token");
-          if (urlToken) token = urlToken;
-        } catch (e) {
-          // If it fails URL parsing, it might just be the token itself
-        }
-
-        // Proceed with verification
-        try {
-          let deviceId = localStorage.getItem('cueclub_device_id')
-          if (!deviceId) {
-            deviceId = 'dev_' + Math.random().toString(36).substr(2, 9)
-            localStorage.setItem('cueclub_device_id', deviceId)
-          }
-
-          const trimmedDeviceId = deviceId?.trim();
-          console.log("DEBUG: Verifying device:", trimmedDeviceId);
-          const verifyRes = await fetch(`/api/verify-scan`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              device_id: trimmedDeviceId,
-              daily_token: token
-            })
-          })
-
-          const verifyData = await verifyRes.json()
-
-          if (verifyRes.ok && verifyData.status === 'logged_in') {
-            alert(`Welcome back, ${verifyData.user}! Access Authorized.`)
-            router.push('/')
-          } else {
-            alert("Device not recognized. Please complete registration to continue.")
-            router.push('/signup')
-          }
-        } catch (err) {
-          console.error("Failed to fetch daily token:", err)
-          alert("Error reaching server.")
-        }
-      };
-
-      const onScanFailure = (error: any) => {
-        // Ignored: Lots of read failures happen before a successful read
-      };
-
-      html5QrCode.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        onScanSuccess,
-        onScanFailure
-      ).catch((err) => {
-        console.error("Error starting scanner", err);
-        if (err.toString().includes("NotAllowedError") || err.toString().includes("Permission dismissed")) {
-          alert("Camera access denied. Please click the camera icon in your browser address bar and choose 'Allow'.");
-        } else {
-          alert("Camera access denied or unavailable. Please check your browser permissions.");
-        }
-        setIsScanning(false);
-      });
-    }, 100);
+    startCamera();
 
     return () => {
       isComponentMounted = false;
-      clearInterval(initScanner);
-      if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => html5QrCode?.clear()).catch(console.error);
+      if (intervalId) clearInterval(intervalId);
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
       }
     };
   }, [isScanning, router]);
@@ -176,17 +189,17 @@ export default function Hero() {
                     transition={{ delay: 0.2, duration: 1 }}
                     className="text-primary text-[10px] md:text-xs font-bold uppercase tracking-[0.3em]"
                   >
-                    Excellence in Precision
+                    {t('landing.heroPretitle', 'Excellence in Precision')}
                   </motion.span>
 
                   <h1 className="text-3xl md:text-5xl lg:text-7xl font-black leading-[1.1] tracking-tighter text-white uppercase">
-                    MASTER THE ART OF<br />
-                    <span className="text-gradient">PRECISION</span>
+                    {t('landing.heroTitleLine1', 'MASTER THE ART OF')}<br />
+                    <span className="text-gradient">{t('landing.heroTitleLine2', 'PRECISION')}</span>
                   </h1>
                 </div>
 
                 <p className="text-xs md:text-base text-[#A3A3A3] max-w-lg leading-relaxed">
-                  Where luxury meets competitive play. Join our world-class facilities for billiards, pool, carrom, and darts.
+                  {t('landing.heroSubtitle', 'Where luxury meets competitive play. Join our world-class facilities for billiards, pool, carrom, and darts.')}
                 </p>
 
                 <div className="flex flex-col items-center gap-6 md:gap-8 mt-2 w-full">
@@ -205,10 +218,9 @@ export default function Hero() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="relative z-10 flex flex-col items-center py-4 md:py-6"
                       >
-                        <span className="text-[10px] md:text-xs font-black tracking-[0.3em] uppercase text-white/60 mb-1">Start</span>
-                        <span className="text-xl md:text-3xl font-black tracking-widest uppercase leading-none">PLAYING</span>
-                        <span className="text-[10px] md:text-xs font-black tracking-[0.3em] uppercase text-white/60 mt-1">Now</span>
-                        <ArrowRight className="mt-4 opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 text-white shrink-0" size={24} />
+                        <span className="text-[10px] md:text-xs font-black tracking-[0.3em] uppercase text-white/60 mb-1">{t('landing.start', 'Start')}</span>
+                        <span className="text-xl md:text-3xl font-black tracking-widest uppercase leading-none">{t('landing.playing', 'PLAYING')}</span>
+                        <span className="text-[10px] md:text-xs font-black tracking-[0.3em] uppercase text-white/60 mt-1">{t('landing.now', 'Now')}</span>
                       </motion.span>
                     </Button>
                   </Magnetic>
@@ -216,7 +228,7 @@ export default function Hero() {
                   <Link href="#tour">
                     <button className="text-[#A3A3A3] hover:text-white flex items-center gap-2 font-bold tracking-widest text-[10px] uppercase transition-colors group">
                       <Play size={10} className="fill-current" />
-                      Experience the Virtual Tour
+                      {t('landing.virtualTour', 'Experience the Virtual Tour')}
                       <span className="h-[1px] w-0 bg-primary group-hover:w-6 transition-all duration-500 ml-2" />
                     </button>
                   </Link>
@@ -233,18 +245,32 @@ export default function Hero() {
                 <div className="w-full flex justify-between items-center px-4">
                   <h2 className="text-xl font-black uppercase text-white tracking-wider flex items-center gap-2">
                     <QrCode className="text-primary" />
-                    Scan QR
+                    {t('landing.scanQr', 'Scan QR')}
                   </h2>
                   <Button variant="ghost" size="icon" onClick={() => setIsScanning(false)} className="hover:bg-white/10 rounded-full">
                     <X className="text-white" size={24} />
                   </Button>
                 </div>
                 <div className="relative w-full max-w-sm aspect-square bg-black/80 rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(234,88,12,0.15)] flex items-center justify-center">
-                  <div id="reader" className="w-full h-full" />
+                  <video
+                    ref={videoRef}
+                    className="w-full h-full object-cover absolute inset-0 animate-fade-in"
+                    playsInline
+                    autoPlay
+                    muted
+                  />
+                  {/* Premium Scanning Overlay Guidelines */}
+                  <div className="absolute inset-10 border-2 border-dashed border-primary/30 rounded-[2rem] pointer-events-none z-10 animate-pulse" />
                 </div>
-                <p className="text-[#A3A3A3] text-sm animate-pulse tracking-wide uppercase font-bold text-center">
-                  Point your camera at the screen<br />to start playing
-                </p>
+                {scannerError ? (
+                  <p className="text-red-400 text-sm tracking-wide uppercase font-bold text-center">
+                    {scannerError}
+                  </p>
+                ) : (
+                  <p className="text-[#A3A3A3] text-sm animate-pulse tracking-wide uppercase font-bold text-center">
+                    {t('landing.pointCamera', 'Point your camera at the screen to start playing')}
+                  </p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

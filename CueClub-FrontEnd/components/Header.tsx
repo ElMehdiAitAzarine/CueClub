@@ -6,8 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Magnetic from './Magnetic'
+import LanguageToggle from '@/components/LanguageToggle'
+import { useTranslation } from 'react-i18next'
+import '@/lib/i18n'
 
 export default function Header() {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [userName, setUserName] = useState<string | null>(null)
@@ -37,10 +41,10 @@ export default function Header() {
   }
 
   const navLinks = [
-    { name: 'Philosophy', href: '/#about' },
-    { name: 'Games', href: '/#games' },
-    { name: 'Excellence', href: '/#features' },
-    { name: 'Menu', href: '/menu' },
+    { name: t('landing.philosophy', 'Philosophy'), href: '/#about' },
+    { name: t('landing.games', 'Games'), href: '/#games' },
+    { name: t('landing.excellence', 'Excellence'), href: '/#features' },
+    { name: t('landing.menu', 'Menu'), href: '/menu' },
   ]
 
   return (
@@ -51,11 +55,11 @@ export default function Header() {
     >
       <nav className="container mx-auto px-6 flex items-center justify-between lg:justify-center lg:gap-12">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 md:gap-3 group shrink-0">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-[#EA580C] to-[#F59E0B] rounded-[10px] md:rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-12 transition-transform duration-500 shadow-lg shadow-primary/20">
-            <span className="text-white font-black text-base md:text-xl">C</span>
+        <Link href={userName ? "/home" : "/"} className="flex items-center gap-2 md:gap-3 group shrink-0">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-transparent rounded-[10px] md:rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-12 transition-transform duration-500 shadow-lg shadow-primary/20">
+            <img src="/images/logo-cueclub.png" alt="CueClub Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="text-lg md:text-2xl font-black text-white tracking-tighter">
+          <span className="text-lg md:text-2xl font-black text-white tracking-tighter hidden sm:block">
             CUE-<span className="text-primary">CLUB</span>
           </span>
         </Link>
@@ -76,6 +80,7 @@ export default function Header() {
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-3">
+          <LanguageToggle />
           {userName ? (
             <Magnetic>
               <div className="hidden sm:flex items-center gap-2">
@@ -95,7 +100,7 @@ export default function Header() {
             <Magnetic>
               <Link href="/login" className="hidden sm:block">
                 <Button variant="outline" className="text-amber-400 border-amber-400/20 hover:bg-amber-400/10 transition-all duration-500 font-bold tracking-widest text-[10px] whitespace-nowrap px-4 h-12 rounded-2xl">
-                  MEMBER LOGIN
+                  {t('landing.memberLogin', 'MEMBER LOGIN')}
                 </Button>
               </Link>
             </Magnetic>
@@ -147,13 +152,13 @@ export default function Header() {
                   <div className="flex items-center justify-between">
                     <span className="text-white font-bold text-lg uppercase tracking-widest">{userName.split(' ')[0]}</span>
                     <button onClick={() => { handleLogout(); setIsOpen(false) }} className="flex items-center gap-2 text-red-400 text-sm font-bold uppercase tracking-widest">
-                      <LogOut size={16} /> Sign Out
+                      <LogOut size={16} /> {t('landing.signOut', 'Sign Out')}
                     </button>
                   </div>
                 ) : (
                   <Link href="/login">
                     <Button variant="outline" className="w-full border-white/10 text-white font-bold h-16 rounded-2xl text-xs tracking-widest uppercase">
-                      MEMBER LOGIN
+                      {t('landing.memberLogin', 'MEMBER LOGIN')}
                     </Button>
                   </Link>
                 )}

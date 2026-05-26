@@ -625,6 +625,38 @@ def confirm_play(request):
         return Response({"detail": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
+def get_user_game_history(request):
+    """Returns past played games history for a specific user."""
+    client_id = request.query_params.get('client_id')
+    device_id = request.query_params.get('device_id')
+    
+    if not client_id:
+        return Response({"detail": "client_id required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    try:
+        user = Client.objects.get(id=client_id)
+        # Security validation: make sure the device_id matches the user's linked device
+        if user.device_id and device_id and user.device_id != device_id:
+            return Response({"detail": "Unauthorized device"}, status=status.HTTP_403_FORBIDDEN)
+    except Client.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    # Get all game sessions for this client
+    sessions = DailyGameSession.objects.filter(client=user).order_by('-created_at')
+    
+    return Response([{
+        "session_id": s.session_id,
+        "table_name": s.game_table.gamet_name if s.game_table else "TBD",
+        "game_type": s.game_table.game_type.name if s.game_table and s.game_table.game_type else "TBD",
+        "game_type_image": s.game_table.game_type.image_path if s.game_table and s.game_table.game_type else "",
+        "status": s.status,
+        "daily_number": s.daily_number,
+        "created_at": s.created_at,
+        "notified_at": s.notified_at
+    } for s in sessions])
+
+@api_view(['GET'])
 def get_user_orders(request):
     """Returns orders for a specific user."""
     client_id = request.query_params.get('client_id')

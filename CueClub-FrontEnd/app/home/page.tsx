@@ -17,7 +17,8 @@ import {
     PlayCircle,
     AlertCircle,
     Coffee,
-    User
+    User,
+    History
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
@@ -203,7 +204,16 @@ export default function HomePage() {
         <div className={cn("min-h-screen text-foreground selection:bg-primary/30 pb-20", isDark ? 'dark bg-[#0A0A0A]' : 'light-mode bg-[#F7F5F0]')}>
             <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b p-4 flex justify-between items-center", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
                 <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#EA580C] to-[#F59E0B] rounded-lg flex items-center justify-center shadow-lg rotate-3">
+                        <span className="text-white font-black text-sm">C</span>
+                    </div>
+                    <span className="text-sm font-bold tracking-wider hidden xs:block">Cue-Club</span>
+                </div>
+                <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase text-muted-foreground mr-2 hidden sm:block">{userName}</span>
+                    <Button variant="ghost" size="icon" onClick={() => router.push('/history')} className={cn("rounded-full transition-colors", isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-[#1A1A1A]")} title={t('userHome.history', 'Game History')}>
+                        <History size={18} />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className={cn("rounded-full transition-colors", isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-[#1A1A1A]")}>
                         <User size={18} />
                     </Button>

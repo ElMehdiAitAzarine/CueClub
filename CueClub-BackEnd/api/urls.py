@@ -13,6 +13,7 @@ urlpatterns = [
     path('cancel-session', views.cancel_session, name='cancel_session'),
     path('confirm-play', views.confirm_play, name='confirm_play'),
     path('user-orders', views.get_user_orders, name='user_orders'),
+    path('user-game-history', views.get_user_game_history, name='user_game_history'),
     path('cancel-order', views.cancel_order, name='cancel_order'),
     path('cafe-tables', views.get_cafe_tables, name='cafe_tables'),
     path('occupy-cafe-table', views.occupy_cafe_table, name='occupy_cafe_table'),

@@ -188,16 +188,11 @@ def login(request):
     if not phone or not password:
         return Response({"detail": "Phone and password required"}, status=status.HTTP_400_BAD_REQUEST)
         
-    # Updated Screen Authentication: must be an admin
-    admin_screen = Admin.objects.filter(username__iexact=phone).first()
-    if admin_screen and pwd_context.verify(hashlib.sha256(password.encode('utf-8')).hexdigest(), admin_screen.password_hash):
-        return Response({
-            "status": "success",
-            "id": -1,
-            "user": admin_screen.username,
-            "is_screen": True,
-            "admin_level": admin_screen.admin_level
-        })
+    # Block admin credentials from being used on the member login page.
+    # Admins must use the dedicated /sys-admin/login endpoint instead.
+    admin_account = Admin.objects.filter(username__iexact=phone).first()
+    if admin_account:
+        return Response({"detail": "Admin accounts cannot log in here. Please use the admin panel."}, status=status.HTTP_403_FORBIDDEN)
 
     try:
         # Multi-identifier login: username (full_name_cl), phone, or email
@@ -212,7 +207,19 @@ def login(request):
             
         # Verify password
         pw_to_check = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        if not pwd_context.verify(pw_to_check, user.password_hash):
+        
+        is_valid = False
+        if user.password_hash:
+            try:
+                is_valid = pwd_context.verify(pw_to_check, user.password_hash)
+            except Exception:
+                pass
+            
+            # Fallback for plain text or pure SHA-256 legacy hashes
+            if not is_valid and (user.password_hash == pw_to_check or user.password_hash == password):
+                is_valid = True
+                
+        if not is_valid:
             return Response({"detail": "Incorrect password"}, status=status.HTTP_401_UNAUTHORIZED)
             
         # Optional: Link device if not already set or updated
@@ -229,10 +236,14 @@ def login(request):
             user.device_id = device_id
             user.save()
             
+        # Include session config for user session management
+        config = SessionConfig.get_config()
         return Response({
             "status": "success",
             "id": user.id,
-            "user": user.full_name_cl
+            "user": user.full_name_cl,
+            "login_timestamp": timezone.now().isoformat(),
+            "session_duration_hours": config.user_session_hours
         })
     except Exception as e:
         return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -335,6 +346,14 @@ def get_game_status(request):
     today = timezone.now().date()
     now = timezone.now()
     
+    # Heartbeat update for connected client
+    client_id = request.query_params.get('client_id')
+    if client_id:
+        try:
+            Client.objects.filter(id=client_id).update(last_seen_at=now)
+        except Exception as e:
+            print("Heartbeat update failed:", e)
+
     # Process timeouts and next-in-line for each table
     for table in tables:
         # 1. Check for timeout on notified players
@@ -653,8 +672,226 @@ def get_user_game_history(request):
         "status": s.status,
         "daily_number": s.daily_number,
         "created_at": s.created_at,
-        "notified_at": s.notified_at
+        "notified_at": s.notified_at,
+        "opponent": s.opponent.full_name_cl if s.opponent else None,
     } for s in sessions])
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_connected_players(request):
+    client_id = request.query_params.get('client_id')
+    now = timezone.now()
+    fifteen_seconds_ago = now - timezone.timedelta(seconds=15)
+    
+    # Players active in the last 15 seconds (excluding the requesting client)
+    active_query = Client.objects.filter(last_seen_at__gte=fifteen_seconds_ago)
+    if client_id:
+        active_query = active_query.exclude(id=client_id)
+        
+    connected_players = list(active_query)
+    
+    # Categorize
+    idle = []
+    finishing = []
+    
+    today = now.date()
+    
+    for player in connected_players:
+        # Check if player is playing
+        active_session = DailyGameSession.objects.filter(
+            client=player,
+            status__in=['playing', 'notified'],
+            game_status='active',
+            created_at__date=today
+        ).first()
+        
+        if not active_session:
+            # Also check as opponent
+            active_session = DailyGameSession.objects.filter(
+                opponent=player,
+                status__in=['playing', 'notified'],
+                game_status='active',
+                created_at__date=today
+            ).first()
+            
+        if not active_session:
+            idle.append({
+                "id": player.id,
+                "full_name": player.full_name_cl or f"Player #{player.id}",
+            })
+        else:
+            # check if they've been playing for >15 minutes
+            is_finishing = False
+            if active_session.status == 'playing' and active_session.notified_at:
+                elapsed = (now - active_session.notified_at).total_seconds()
+                if elapsed > 900: # 15 minutes
+                    is_finishing = True
+                    
+            if is_finishing:
+                finishing.append({
+                    "id": player.id,
+                    "full_name": player.full_name_cl or f"Player #{player.id}",
+                })
+                
+    return Response({
+        "idle": idle,
+        "finishing": finishing
+    })
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_play_request(request):
+    sender_id = request.data.get('sender_id')
+    receiver_id = request.data.get('receiver_id')
+    table_id = request.data.get('table_id')
+    
+    if not sender_id or not receiver_id or not table_id:
+        return Response({"detail": "sender_id, receiver_id, and table_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    try:
+        sender = Client.objects.get(id=sender_id)
+        receiver = Client.objects.get(id=receiver_id)
+        table = GamingTable.objects.get(id_gamet=table_id)
+        
+        # Check if there's already an active play request between them
+        existing = PlayRequest.objects.filter(
+            sender=sender,
+            receiver=receiver,
+            status='pending'
+        ).first()
+        
+        if existing:
+            # Auto-expire if older than 10 seconds
+            elapsed = (timezone.now() - existing.created_at).total_seconds()
+            if elapsed <= 10:
+                return Response({"detail": "A request is already pending to this player"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                existing.status = 'expired'
+                existing.save()
+                
+        req = PlayRequest.objects.create(
+            sender=sender,
+            receiver=receiver,
+            game_table=table,
+            status='pending'
+        )
+        
+        return Response({"status": "success", "request_id": req.id})
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def poll_play_requests(request):
+    client_id = request.query_params.get('client_id')
+    if not client_id:
+        return Response({"detail": "client_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    now = timezone.now()
+    
+    # Expiry logic for pending requests
+    pending_requests = PlayRequest.objects.filter(receiver_id=client_id, status='pending')
+    
+    active_reqs = []
+    for req in pending_requests:
+        elapsed = (now - req.created_at).total_seconds()
+        if elapsed > 10:
+            req.status = 'expired'
+            req.save()
+        else:
+            active_reqs.append({
+                "id": req.id,
+                "sender_name": req.sender.full_name_cl or f"Player #{req.sender.id}",
+                "table_name": req.game_table.gamet_name,
+                "table_id": req.game_table.id_gamet,
+                "time_left": max(0, int(10 - elapsed))
+            })
+            
+    return Response(active_reqs)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def respond_play_request(request):
+    request_id = request.data.get('request_id')
+    response_val = request.data.get('response') # 'accepted' or 'refused'
+    
+    if not request_id or not response_val:
+        return Response({"detail": "request_id and response are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    try:
+        req = PlayRequest.objects.get(id=request_id)
+        
+        # Check expiry (10 seconds)
+        elapsed = (timezone.now() - req.created_at).total_seconds()
+        if elapsed > 10:
+            req.status = 'expired'
+            req.save()
+            return Response({"detail": "Request has expired"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if req.status != 'pending':
+            return Response({"detail": "Request already handled"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        req.status = response_val
+        req.save()
+        
+        if response_val == 'accepted':
+            today = timezone.now().date()
+            # 1. Cancel any active queues/playing sessions for both players to avoid overlaps
+            DailyGameSession.objects.filter(
+                client_id__in=[req.sender.id, req.receiver.id],
+                status__in=['waiting', 'notified', 'playing'],
+                created_at__date=today
+            ).update(status='completed')
+            
+            DailyGameSession.objects.filter(
+                opponent_id__in=[req.sender.id, req.receiver.id],
+                status__in=['waiting', 'notified', 'playing'],
+                created_at__date=today
+            ).update(status='completed')
+            
+            # 2. Create the multiplayer Game Session
+            session = DailyGameSession.objects.create(
+                client=req.sender,
+                opponent=req.receiver,
+                game_table=req.game_table,
+                status='playing',
+                daily_number=99,  # special number for match duels
+                notified_at=timezone.now()
+            )
+            return Response({"status": "success", "session_id": session.session_id})
+            
+        return Response({"status": "success", "message": "Request declined"})
+    except PlayRequest.DoesNotExist:
+        return Response({"detail": "Request not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def set_session_winner(request):
+    session_id = request.data.get('session_id')
+    winner_id = request.data.get('winner_id') # Can be client_id, opponent_id or None for draw
+    
+    if not session_id:
+        return Response({"detail": "session_id required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    try:
+        session = DailyGameSession.objects.get(session_id=session_id)
+        if winner_id:
+            winner = Client.objects.get(id=winner_id)
+            session.winner = winner
+        else:
+            session.winner = None
+        session.save()
+        return Response({"status": "success"})
+    except DailyGameSession.DoesNotExist:
+        return Response({"detail": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Client.DoesNotExist:
+        return Response({"detail": "Winner player not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def get_user_orders(request):
@@ -851,34 +1088,53 @@ def confirm_cafe_table(request):
         return Response({"detail": "Occupation not found"}, status=status.HTTP_404_NOT_FOUND)
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@permission_classes([AllowAny])
 def admin_login(request):
     """Admin login with credentials from DB."""
-    username = request.data.get('username')
-    password = request.data.get('password')
-    login_type = request.data.get('login_type', 'admin')  # 'admin' or 'screen'
-    
-    if username:
-        username = username.strip()
-    
-    admin = Admin.objects.filter(username__iexact=username).first()
-    if admin:
-        # We expect double hashing on frontend for user login, but admin might be simpler or same
-        # Let's stay consistent: frontend sends plain password, we hash sha256 then verify with pbkdf2
-        pw_to_check = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        if pwd_context.verify(pw_to_check, admin.password_hash):
-            config = SessionConfig.get_config()
-            session_hours = config.screen_session_hours if login_type == 'screen' else config.admin_session_hours
-            return Response({
-                "status": "success",
-                "token": f"token-{admin.id}-{admin.admin_level}",
-                "user": admin.username,
-                "admin_level": admin.admin_level,
-                "session_duration_hours": session_hours,
-                "login_timestamp": timezone.now().isoformat()
-            })
+    try:
+        username = request.data.get('username')
+        password = request.data.get('password')
+        login_type = request.data.get('login_type', 'admin')  # 'admin' or 'screen'
+        
+        if username:
+            username = username.strip()
+        
+        if not username or not password:
+            return Response({"detail": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        admin = Admin.objects.filter(username__iexact=username).first()
+        if admin:
+            # We expect double hashing on frontend for user login, but admin might be simpler or same
+            # Let's stay consistent: frontend sends plain password, we hash sha256 then verify with pbkdf2
+            pw_to_check = hashlib.sha256(password.encode('utf-8')).hexdigest()
+            is_valid = False
             
-    return Response({"detail": "Access Denied: Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            if admin.password_hash:
+                try:
+                    is_valid = pwd_context.verify(pw_to_check, admin.password_hash)
+                except Exception:
+                    pass
+                
+                # Fallback for plain text or pure SHA-256 legacy hashes
+                if not is_valid and (admin.password_hash == pw_to_check or admin.password_hash == password):
+                    is_valid = True
+
+            if is_valid:
+                config = SessionConfig.get_config()
+                session_hours = config.screen_session_hours if login_type == 'screen' else config.admin_session_hours
+                return Response({
+                    "status": "success",
+                    "token": f"token-{admin.id}-{admin.admin_level}",
+                    "user": admin.username,
+                    "admin_level": admin.admin_level,
+                    "session_duration_hours": session_hours,
+                    "login_timestamp": timezone.now().isoformat()
+                })
+                
+        return Response({"detail": "Access Denied: Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        import traceback
+        print(f"admin_login error: {traceback.format_exc()}")
+        return Response({"detail": f"Login error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET', 'POST'])
 def manage_menu(request):
@@ -1135,10 +1391,14 @@ def manage_sessions(request):
         return Response([{
             "id": s.session_id,
             "client": s.client.full_name_cl if s.client else "Unknown",
+            "client_id": s.client.id if s.client else None,
+            "opponent": s.opponent.full_name_cl if s.opponent else None,
+            "opponent_id": s.opponent.id if s.opponent else None,
             "table": s.game_table.gamet_name if s.game_table else "TBD",
             "status": s.status,
             "daily_number": s.daily_number,
-            "created_at": s.created_at
+            "created_at": s.created_at,
+            "winner": s.winner.full_name_cl if s.winner else None
         } for s in sessions])
     
     if request.method == 'POST':
@@ -1422,6 +1682,7 @@ def manage_session_config(request):
         return Response({
             "admin_session_hours": config.admin_session_hours,
             "screen_session_hours": config.screen_session_hours,
+            "user_session_hours": config.user_session_hours,
             "updated_at": config.updated_at
         })
     
@@ -1429,6 +1690,7 @@ def manage_session_config(request):
         data = request.data
         admin_hours = data.get('admin_session_hours')
         screen_hours = data.get('screen_session_hours')
+        user_hours = data.get('user_session_hours')
         
         if admin_hours is not None:
             admin_hours = float(admin_hours)
@@ -1442,11 +1704,18 @@ def manage_session_config(request):
                 return Response({"detail": "Screen session must be between 1 and 168 hours"}, status=status.HTTP_400_BAD_REQUEST)
             config.screen_session_hours = screen_hours
         
+        if user_hours is not None:
+            user_hours = float(user_hours)
+            if user_hours < 0.5 or user_hours > 168:
+                return Response({"detail": "User session must be between 0.5 and 168 hours"}, status=status.HTTP_400_BAD_REQUEST)
+            config.user_session_hours = user_hours
+        
         config.save()
         return Response({
             "status": "success",
             "admin_session_hours": config.admin_session_hours,
-            "screen_session_hours": config.screen_session_hours
+            "screen_session_hours": config.screen_session_hours,
+            "user_session_hours": config.user_session_hours
         })
 
 @api_view(['POST'])
@@ -1466,7 +1735,12 @@ def validate_session(request):
             login_time = timezone.make_aware(login_time)
         
         config = SessionConfig.get_config()
-        max_hours = config.screen_session_hours if session_type == 'screen' else config.admin_session_hours
+        if session_type == 'screen':
+            max_hours = config.screen_session_hours
+        elif session_type == 'user':
+            max_hours = config.user_session_hours
+        else:
+            max_hours = config.admin_session_hours
         elapsed = (timezone.now() - login_time).total_seconds() / 3600
         
         if elapsed > max_hours:
@@ -1484,3 +1758,5 @@ def validate_session(request):
         })
     except Exception as e:
         return Response({"valid": False, "reason": str(e)})
+
+

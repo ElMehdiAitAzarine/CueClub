@@ -39,40 +39,56 @@ export default function LoginPage() {
             localStorage.setItem('cueclub_device_id', deviceId)
         }
 
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                mode: 'cors',
-                credentials: 'omit',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone: formData.phone,
-                    password: formData.password,
-                    device_id: deviceId
-                })
-            })
+        const maxRetries = 3
+        let lastError = ''
 
-            const data = await res.json()
-            if (res.ok) {
-                localStorage.setItem('cueclub_user_id', data.id)
-                localStorage.setItem('cueclub_user_name', data.user)
-                localStorage.setItem('cueclub_logged_in', 'true')
-                
-                if (data.is_screen) {
-                    router.push('/screen')
-                } else {
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const controller = new AbortController()
+                const timeout = setTimeout(() => controller.abort(), attempt === 0 ? 15000 : 10000)
+
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: formData.phone,
+                        password: formData.password,
+                        device_id: deviceId
+                    }),
+                    signal: controller.signal
+                })
+                clearTimeout(timeout)
+
+                if (res.ok) {
+                    const data = await res.json()
+                    localStorage.setItem('cueclub_user_id', data.id)
+                    localStorage.setItem('cueclub_user_name', data.user)
+                    localStorage.setItem('cueclub_logged_in', 'true')
+                    localStorage.setItem('cueclub_user_login_timestamp', data.login_timestamp || new Date().toISOString())
+                    localStorage.setItem('cueclub_user_session_duration', String(data.session_duration_hours || 24))
                     router.push('/home')
+                    return
                 }
-            } else {
-                setError(data.detail || "Login failed")
+
+                // Real auth/validation failure — don't retry
+                if (res.status === 401 || res.status === 400 || res.status === 403 || res.status === 404) {
+                    const data = await res.json()
+                    setError(data.detail || "Login failed")
+                    setLoading(false)
+                    return
+                }
+
+                lastError = `Server error (${res.status})`
+            } catch (err: any) {
+                lastError = err.name === 'AbortError' ? 'Request timed out' : 'Connection error'
+                if (attempt < maxRetries - 1) {
+                    await new Promise(r => setTimeout(r, 1500))
+                }
             }
-        } catch (err) {
-            setError("Connection error")
-        } finally {
-            setLoading(false)
         }
+
+        setError(lastError || "Connection failed. Please try again.")
+        setLoading(false)
     }
 
     return (

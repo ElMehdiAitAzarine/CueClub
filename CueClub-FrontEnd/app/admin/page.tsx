@@ -13,6 +13,7 @@ import {
     CheckCircle,
     XCircle,
     Loader2,
+    Award,
     Lock,
     LogOut,
     Search,
@@ -101,11 +102,15 @@ interface ClientRecord {
 interface GameSession {
     id: number;
     client: string;
+    client_id?: number | null;
+    opponent?: string | null;
+    opponent_id?: number | null;
     table: string;
     table_name?: string;
     status: string;
     daily_number: number;
     created_at: string;
+    winner?: string | null;
 }
 
 interface HistoryRecord {
@@ -150,9 +155,11 @@ export default function AdminPage() {
     const [showModal, setShowModal] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState('')
     const [adminLevel, setAdminLevel] = useState<string | null>(null)
+    const [winnerModal, setWinnerModal] = useState<GameSession | null>(null)
+    const [settingWinner, setSettingWinner] = useState(false)
 
     // Session management states
-    const [sessionConfig, setSessionConfig] = useState<{admin_session_hours: number, screen_session_hours: number} | null>(null)
+    const [sessionConfig, setSessionConfig] = useState<{admin_session_hours: number, screen_session_hours: number, user_session_hours: number} | null>(null)
     const [sessionRemaining, setSessionRemaining] = useState<string | null>(null)
     const [savingConfig, setSavingConfig] = useState(false)
 
@@ -280,30 +287,56 @@ export default function AdminPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        try {
-            const res = await fetch('/api/sys-admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...loginForm, login_type: 'admin' })
-            })
-            if (res.ok) {
-                const data = await res.json()
-                localStorage.setItem('cueclub_admin_token', data.token)
-                localStorage.setItem('cueclub_admin_level', data.admin_level)
-                localStorage.setItem('cueclub_admin_login_timestamp', data.login_timestamp)
-                localStorage.setItem('cueclub_admin_session_duration', String(data.session_duration_hours))
-                setIsLoggedIn(true)
-                setAdminLevel(data.admin_level)
-                fetchAllData()
-                checkSessionValidity()
-            } else {
-                alert("Invalid Credentials")
+        
+        const maxRetries = 3
+        let lastError = ''
+        
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const controller = new AbortController()
+                const timeout = setTimeout(() => controller.abort(), attempt === 0 ? 15000 : 10000)
+                
+                const res = await fetch('/api/sys-admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...loginForm, login_type: 'admin' }),
+                    signal: controller.signal
+                })
+                clearTimeout(timeout)
+                
+                if (res.ok) {
+                    const data = await res.json()
+                    localStorage.setItem('cueclub_admin_token', data.token)
+                    localStorage.setItem('cueclub_admin_level', data.admin_level)
+                    localStorage.setItem('cueclub_admin_login_timestamp', data.login_timestamp)
+                    localStorage.setItem('cueclub_admin_session_duration', String(data.session_duration_hours))
+                    setIsLoggedIn(true)
+                    setAdminLevel(data.admin_level)
+                    fetchAllData()
+                    checkSessionValidity()
+                    setLoading(false)
+                    return
+                }
+                
+                // Real auth failure — don't retry
+                if (res.status === 401 || res.status === 400) {
+                    alert("Invalid Credentials")
+                    setLoading(false)
+                    return
+                }
+                
+                lastError = `Server error (${res.status})`
+            } catch (err: any) {
+                lastError = err.name === 'AbortError' ? 'Request timed out' : 'Connection error'
+                // Wait briefly before retrying (cold-start recovery)
+                if (attempt < maxRetries - 1) {
+                    await new Promise(r => setTimeout(r, 1500))
+                }
             }
-        } catch (err) {
-            alert("Connection error")
-        } finally {
-            setLoading(false)
         }
+        
+        alert(lastError || "Connection failed after multiple attempts")
+        setLoading(false)
     }
 
     const handleLogout = () => {
@@ -328,7 +361,7 @@ export default function AdminPage() {
         }
     }
 
-    const handleSaveSessionConfig = async (adminHours: number, screenHours: number) => {
+    const handleSaveSessionConfig = async (adminHours: number, screenHours: number, userHours: number) => {
         setSavingConfig(true)
         try {
             const res = await fetchWithAuth('/api/sys-admin/session-config', {
@@ -336,12 +369,13 @@ export default function AdminPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     admin_session_hours: adminHours,
-                    screen_session_hours: screenHours
+                    screen_session_hours: screenHours,
+                    user_session_hours: userHours
                 })
             })
             if (res.ok) {
                 const data = await res.json()
-                setSessionConfig({ admin_session_hours: data.admin_session_hours, screen_session_hours: data.screen_session_hours })
+                setSessionConfig({ admin_session_hours: data.admin_session_hours, screen_session_hours: data.screen_session_hours, user_session_hours: data.user_session_hours })
                 // Update local session duration if it changed
                 localStorage.setItem('cueclub_admin_session_duration', String(data.admin_session_hours))
                 alert('Session configuration updated successfully')
@@ -381,6 +415,33 @@ export default function AdminPage() {
             }
         } catch (err) {
             alert("Delete failed")
+        }
+    }
+
+    const handleSetWinner = async (sessionId: number, winnerId: number | null) => {
+        setSettingWinner(true)
+        try {
+            const res = await fetchWithAuth('/api/set-session-winner', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, winner_id: winnerId })
+            })
+            if (res.ok) {
+                await fetchWithAuth(`/api/sys-admin/sessions/${sessionId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'completed' })
+                })
+                setWinnerModal(null)
+                fetchAllData()
+            } else {
+                const err = await res.json()
+                alert(err.detail || 'Failed to set winner')
+            }
+        } catch (e) {
+            alert('Network error setting winner')
+        } finally {
+            setSettingWinner(false)
         }
     }
 
@@ -941,6 +1002,7 @@ export default function AdminPage() {
                                                 <tr>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Queue</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Member</th>
+                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Opponent</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Table</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Status</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Initiated</th>
@@ -953,6 +1015,19 @@ export default function AdminPage() {
                                                         <td className="px-8 py-6 font-black text-primary text-xl italic">#{session.daily_number}</td>
                                                         <td className="px-8 py-6">
                                                             <p className={cn("font-black uppercase tracking-tight", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{session.client}</p>
+                                                        </td>
+                                                        <td className="px-8 py-6">
+                                                            {session.opponent ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-[10px]">⚔️</span>
+                                                                    <p className={cn("font-bold uppercase tracking-tight text-xs", isDark ? 'text-white/70' : 'text-[#4A4540]')}>{session.opponent}</p>
+                                                                </div>
+                                                            ) : (
+                                                                <span className={cn("text-[10px] uppercase tracking-widest", isDark ? 'text-white/20' : 'text-[#8A857E]')}>Solo</span>
+                                                            )}
+                                                            {session.winner && (
+                                                                <p className="text-[9px] text-amber-500 font-black uppercase mt-1">👑 {session.winner}</p>
+                                                            )}
                                                         </td>
                                                         <td className="px-8 py-6 text-center">
                                                             <span className="px-4 py-1.5 rounded-xl bg-primary text-black text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">
@@ -974,6 +1049,11 @@ export default function AdminPage() {
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                {session.opponent && session.status === 'playing' && !session.winner && (
+                                                                    <Button variant="ghost" size="icon" className="bg-amber-500/10 text-amber-500 rounded-xl h-10 w-10 hover:bg-amber-500 hover:text-black" onClick={() => setWinnerModal(session)} title="Crown Winner">
+                                                                        <Award size={14} />
+                                                                    </Button>
+                                                                )}
                                                                 <Button variant="ghost" size="icon" className={cn("rounded-xl h-10 w-10 hover:bg-primary hover:text-black", isDark ? 'bg-white/5' : 'bg-white border border-[#D5D0C8]')} onClick={() => setShowModal({ type: 'sessions', data: session })}>
                                                                     <Edit size={14} />
                                                                 </Button>
@@ -1380,6 +1460,54 @@ export default function AdminPage() {
                     </Card>
                 </div>
             )}
+
+            {/* Winner Selection Modal */}
+            {winnerModal && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[300] flex items-center justify-center p-6">
+                    <Card className={cn("w-full max-w-md rounded-[2rem] p-8 relative shadow-2xl", isDark ? 'bg-[#09090B] border-white/10 text-white' : 'bg-white border-[#D5D0C8] text-[#1A1A1A]')}>
+                        <button className={cn("absolute top-6 right-6", isDark ? 'text-white/20 hover:text-white' : 'text-black/20 hover:text-black')} onClick={() => setWinnerModal(null)}>
+                            <XCircle size={28} />
+                        </button>
+                        <div className="text-center space-y-6">
+                            <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto border border-amber-500/20">
+                                <Award className="text-amber-500" size={32} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black uppercase tracking-wider">Crown the Winner</h2>
+                                <p className={cn("text-xs mt-1", isDark ? 'text-white/40' : 'text-[#8A857E]')}>
+                                    {winnerModal.client} vs {winnerModal.opponent} — {winnerModal.table}
+                                </p>
+                            </div>
+                            <div className="space-y-3">
+                                <Button
+                                    onClick={() => handleSetWinner(winnerModal.id, winnerModal.client_id!)}
+                                    disabled={settingWinner}
+                                    className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-xs"
+                                >
+                                    {settingWinner ? <Loader2 size={16} className="animate-spin mr-2" /> : <Award size={16} className="mr-2" />}
+                                    {winnerModal.client} Wins
+                                </Button>
+                                <Button
+                                    onClick={() => handleSetWinner(winnerModal.id, winnerModal.opponent_id!)}
+                                    disabled={settingWinner}
+                                    className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-xs"
+                                >
+                                    {settingWinner ? <Loader2 size={16} className="animate-spin mr-2" /> : <Award size={16} className="mr-2" />}
+                                    {winnerModal.opponent} Wins
+                                </Button>
+                                <Button
+                                    onClick={() => handleSetWinner(winnerModal.id, null)}
+                                    disabled={settingWinner}
+                                    variant="outline"
+                                    className={cn("w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px]", isDark ? 'border-white/10' : 'border-[#D5D0C8]')}
+                                >
+                                    Draw / No Winner
+                                </Button>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            )}
         </div>
     )
 }
@@ -1442,17 +1570,19 @@ function SessionSettingsPanel({ isDark, sessionConfig, savingConfig, onFetch, on
 
     const [adminHours, setAdminHours] = useState(sessionConfig?.admin_session_hours || 6)
     const [screenHours, setScreenHours] = useState(sessionConfig?.screen_session_hours || 12)
+    const [userHours, setUserHours] = useState(sessionConfig?.user_session_hours || 24)
 
     useEffect(() => {
         if (sessionConfig) {
             setAdminHours(sessionConfig.admin_session_hours)
             setScreenHours(sessionConfig.screen_session_hours)
+            setUserHours(sessionConfig.user_session_hours)
         }
     }, [sessionConfig])
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        onSave(adminHours, screenHours)
+        onSave(adminHours, screenHours, userHours)
     }
 
     return (
@@ -1525,9 +1655,38 @@ function SessionSettingsPanel({ isDark, sessionConfig, savingConfig, onFetch, on
                             </div>
                         </div>
 
+                        {/* User / Member Session Duration */}
+                        <div className={cn("p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300", isDark ? 'bg-white/5 border-white/10' : 'bg-[#F7F5F0] border-[#E8E4DC]')}>
+                            <div>
+                                <div className="flex justify-between items-center mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                                            <Users size={18} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black uppercase tracking-widest text-sm">Member Login Session</h3>
+                                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1">Duration before user must re-login</p>
+                                        </div>
+                                    </div>
+                                    <div className="font-black text-2xl text-emerald-500 shrink-0">{userHours}h</div>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="0.5" max="168" step="0.5" 
+                                    value={userHours} 
+                                    onChange={e => setUserHours(parseFloat(e.target.value))}
+                                    className={cn("w-full accent-emerald-500 h-2 rounded-lg appearance-none cursor-pointer", isDark ? "bg-white/10" : "bg-[#D5D0C8]")}
+                                />
+                            </div>
+                            <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-muted-foreground mt-4">
+                                <span>30 min</span>
+                                <span>1 week</span>
+                            </div>
+                        </div>
+
                         <Button 
                             type="submit" 
-                            disabled={savingConfig || (sessionConfig?.admin_session_hours === adminHours && sessionConfig?.screen_session_hours === screenHours)}
+                            disabled={savingConfig || (sessionConfig?.admin_session_hours === adminHours && sessionConfig?.screen_session_hours === screenHours && sessionConfig?.user_session_hours === userHours)}
                             className="w-full h-14 bg-primary text-black font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100"
                         >
                             {savingConfig ? 'Committing Changes...' : 'Save Configuration'}

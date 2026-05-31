@@ -18,7 +18,10 @@ import {
     AlertCircle,
     Coffee,
     User,
-    History
+    History,
+    Swords,
+    Check,
+    X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
@@ -66,6 +69,13 @@ export default function HomePage() {
     
     const [latestOrder, setLatestOrder] = useState<any>(null)
     
+    // Multiplayer Challenge States
+    const [connectedPlayers, setConnectedPlayers] = useState<{ idle: any[], finishing: any[] }>({ idle: [], finishing: [] })
+    const [activeRequest, setActiveRequest] = useState<any | null>(null)
+    const [sendingInviteTo, setSendingInviteTo] = useState<number | null>(null)
+    const [selectedTableForInvite, setSelectedTableForInvite] = useState<{ [receiverId: number]: number }>({})
+    const [timeLeft, setTimeLeft] = useState(10)
+
     const pollInterval = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
@@ -77,39 +87,170 @@ export default function HomePage() {
             router.push('/login')
             return
         }
+
+        // Check if user session has expired
+        const loginTimestamp = localStorage.getItem('cueclub_user_login_timestamp')
+        const sessionDuration = parseFloat(localStorage.getItem('cueclub_user_session_duration') || '24')
+        
+        if (loginTimestamp) {
+            const loginTime = new Date(loginTimestamp).getTime()
+            const elapsedHours = (Date.now() - loginTime) / (1000 * 60 * 60)
+            
+            if (elapsedHours > sessionDuration) {
+                // Session expired — clear and redirect to login
+                localStorage.removeItem('cueclub_user_id')
+                localStorage.removeItem('cueclub_user_name')
+                localStorage.removeItem('cueclub_logged_in')
+                localStorage.removeItem('cueclub_user_login_timestamp')
+                localStorage.removeItem('cueclub_user_session_duration')
+                alert('Your session has expired. Please log in again.')
+                router.push('/login')
+                return
+            }
+        }
         
         setUserId(storedId)
         setUserName(storedName)
-        fetchStatus()
+        fetchStatus(storedId)
 
-        pollInterval.current = setInterval(fetchStatus, 5000)
+        pollInterval.current = setInterval(() => fetchStatus(storedId), 5000)
+
+        // Check session validity every 60 seconds
+        const sessionCheckInterval = setInterval(() => {
+            const ts = localStorage.getItem('cueclub_user_login_timestamp')
+            const dur = parseFloat(localStorage.getItem('cueclub_user_session_duration') || '24')
+            if (ts) {
+                const elapsed = (Date.now() - new Date(ts).getTime()) / (1000 * 60 * 60)
+                if (elapsed > dur) {
+                    localStorage.removeItem('cueclub_user_id')
+                    localStorage.removeItem('cueclub_user_name')
+                    localStorage.removeItem('cueclub_logged_in')
+                    localStorage.removeItem('cueclub_user_login_timestamp')
+                    localStorage.removeItem('cueclub_user_session_duration')
+                    alert('Your session has expired. Please log in again.')
+                    router.push('/login')
+                }
+            }
+        }, 60000)
         
         return () => {
             if (pollInterval.current) clearInterval(pollInterval.current)
+            clearInterval(sessionCheckInterval)
         }
     }, [router])
 
-    const fetchStatus = async () => {
+    useEffect(() => {
+        if (!activeRequest) return
+        setTimeLeft(activeRequest.time_left ?? 10)
+        
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer)
+                    handleRespondRequest(activeRequest.id, 'refused')
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+        
+        return () => clearInterval(timer)
+    }, [activeRequest])
+
+    const fetchStatus = async (clientId?: string) => {
+        const id = clientId || userId
+        if (!id) return
         try {
-            const [gameRes, cafeRes] = await Promise.all([
-                fetch('/api/game-status'),
-                fetch('/api/cafe-tables')
+            const [gameRes, cafeRes, playersRes, requestsRes] = await Promise.all([
+                fetch(`/api/game-status?client_id=${id}`),
+                fetch('/api/cafe-tables'),
+                fetch(`/api/connected-players?client_id=${id}`),
+                fetch(`/api/poll-play-requests?client_id=${id}`)
             ])
             
             if (gameRes.ok) setTables(await gameRes.json())
             if (cafeRes.ok) setCafeOccupations(await cafeRes.json())
-            if (userId) {
-                const orderRes = await fetch(`/api/user-orders?client_id=${userId}`)
-                if (orderRes.ok) {
-                    const orders = await orderRes.json()
-                    if (orders.length > 0) setLatestOrder(orders[0])
+            if (playersRes.ok) setConnectedPlayers(await playersRes.json())
+            if (requestsRes.ok) {
+                const reqs = await requestsRes.json()
+                if (reqs.length > 0) {
+                    // Only pop up if it's a new request id or we don't have one active
+                    setActiveRequest((prev: any) => {
+                        if (!prev || prev.id !== reqs[0].id) {
+                            return reqs[0]
+                        }
+                        return prev
+                    })
+                } else {
+                    setActiveRequest(null)
                 }
             }
-                
+            
+            const orderRes = await fetch(`/api/user-orders?client_id=${id}`)
+            if (orderRes.ok) {
+                const orders = await orderRes.json()
+                if (orders.length > 0) setLatestOrder(orders[0])
+            }
         } catch (err) {
             console.error("Failed to fetch status", err)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleSendInvite = async (receiverId: number) => {
+        if (!userId) return
+        const tableId = selectedTableForInvite[receiverId]
+        if (!tableId) {
+            alert("Please select a billiard table first!")
+            return
+        }
+        
+        setSendingInviteTo(receiverId)
+        try {
+            const res = await fetch('/api/send-play-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sender_id: userId,
+                    receiver_id: receiverId,
+                    table_id: tableId
+                })
+            })
+            const data = await res.json()
+            if (res.ok) {
+                alert("Invite sent successfully! They have 10 seconds to accept.")
+            } else {
+                alert(data.detail || "Unable to send invite")
+            }
+        } catch (err) {
+            alert("Network error")
+        } finally {
+            setSendingInviteTo(null)
+        }
+    }
+
+    const handleRespondRequest = async (requestId: number, response: 'accepted' | 'refused') => {
+        try {
+            const res = await fetch('/api/respond-play-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    request_id: requestId,
+                    response: response
+                })
+            })
+            if (res.ok) {
+                setActiveRequest(null)
+                fetchStatus()
+            } else {
+                const data = await res.json()
+                alert(data.detail || "Failed to process request")
+                setActiveRequest(null)
+            }
+        } catch (err) {
+            console.error("Respond request failed:", err)
+            setActiveRequest(null)
         }
     }
 
@@ -270,6 +411,99 @@ export default function HomePage() {
                     </Button>
                 </section>
 
+                {/* Arena Lobby: Connected Players */}
+                <section className="space-y-4">
+                    <div className="flex justify-between items-center px-2">
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
+                            {t('userHome.arenaLobby', 'Arena Lobby')}
+                        </h3>
+                        <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            {connectedPlayers.idle.length + connectedPlayers.finishing.length} online
+                        </span>
+                    </div>
+
+                    <Card className={cn("rounded-[2rem] overflow-hidden p-6", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
+                        {connectedPlayers.idle.length === 0 && connectedPlayers.finishing.length === 0 ? (
+                            <div className="text-center py-6 text-xs text-muted-foreground uppercase tracking-widest">
+                                {t('userHome.lobbyEmpty', 'No other active players in the lobby')}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {/* Idle Players */}
+                                {connectedPlayers.idle.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h4 className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Available to Duel</h4>
+                                        {connectedPlayers.idle.map(player => (
+                                            <div key={player.id} className={cn("flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl border gap-2", isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]")}>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px]">🟢</span>
+                                                    <span className="text-xs font-semibold">{player.full_name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                    <select 
+                                                        value={selectedTableForInvite[player.id] || ''} 
+                                                        onChange={(e) => setSelectedTableForInvite(prev => ({ ...prev, [player.id]: parseInt(e.target.value) }))}
+                                                        className={cn("text-[10px] font-bold p-1 rounded-lg border", isDark ? "bg-[#0E0E0E] border-white/10 text-white" : "bg-white border-[#D5D0C8] text-[#1A1A1A]")}
+                                                    >
+                                                        <option value="">Choose Table</option>
+                                                        {tables.map(t => (
+                                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <Button 
+                                                        onClick={() => handleSendInvite(player.id)}
+                                                        disabled={sendingInviteTo === player.id}
+                                                        size="sm"
+                                                        className="h-7 text-[8px] bg-primary text-black font-black px-2 rounded-lg"
+                                                    >
+                                                        {sendingInviteTo === player.id ? <Loader2 size={12} className="animate-spin" /> : <><Swords size={12} className="mr-1" /> CHALLENGE</>}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Finishing Round Players */}
+                                {connectedPlayers.finishing.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h4 className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Finishing Current Round</h4>
+                                        {connectedPlayers.finishing.map(player => (
+                                            <div key={player.id} className={cn("flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl border gap-2", isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]")}>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px]">🟡</span>
+                                                    <span className="text-xs font-semibold">{player.full_name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                    <select 
+                                                        value={selectedTableForInvite[player.id] || ''} 
+                                                        onChange={(e) => setSelectedTableForInvite(prev => ({ ...prev, [player.id]: parseInt(e.target.value) }))}
+                                                        className={cn("text-[10px] font-bold p-1 rounded-lg border", isDark ? "bg-[#0E0E0E] border-white/10 text-white" : "bg-white border-[#D5D0C8] text-[#1A1A1A]")}
+                                                    >
+                                                        <option value="">Choose Table</option>
+                                                        {tables.map(t => (
+                                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <Button 
+                                                        onClick={() => handleSendInvite(player.id)}
+                                                        disabled={sendingInviteTo === player.id}
+                                                        size="sm"
+                                                        className="h-7 text-[8px] bg-amber-500 text-black hover:bg-amber-400 font-black px-2 rounded-lg"
+                                                    >
+                                                        {sendingInviteTo === player.id ? <Loader2 size={12} className="animate-spin" /> : <><Swords size={12} className="mr-1" /> QUEUE DUEL</>}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </Card>
+                </section>
+
                 <section className="space-y-4">
                     <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground px-2">{t('userHome.livingArena', 'Living Arena Status')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -342,6 +576,55 @@ export default function HomePage() {
                     </div>
                 </section>
             </main>
+
+            {/* 10-Second Play Request Overlay */}
+            {activeRequest && (
+                <div className="fixed inset-0 z-[100] backdrop-blur-md bg-black/60 flex items-center justify-center p-4">
+                    <div className={cn("w-full max-w-sm rounded-[2rem] p-6 border shadow-2xl animate-in zoom-in-95 duration-200", isDark ? 'bg-[#0E0E0E] border-white/10 text-white' : 'bg-white border-[#D5D0C8] text-[#1A1A1A]')}>
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
+                                <Swords className="text-primary animate-bounce" size={28} />
+                            </div>
+                            
+                            <div>
+                                <h3 className="text-lg font-black uppercase tracking-wider">
+                                    {t('userHome.incomingChallenge', 'Duel Challenge!')}
+                                </h3>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    <span className="font-bold text-foreground">{activeRequest.sender_name}</span> wants to play with you on <span className="font-bold text-foreground">{activeRequest.table_name}</span>!
+                                </p>
+                            </div>
+
+                            {/* Countdown bar */}
+                            <div className="w-full bg-muted/40 h-2 rounded-full overflow-hidden relative">
+                                <div 
+                                    className="bg-primary h-full transition-all duration-1000 ease-linear" 
+                                    style={{ width: `${(timeLeft / 10) * 100}%` }}
+                                />
+                            </div>
+                            <span className="text-[10px] uppercase font-black tracking-widest text-primary">
+                                {timeLeft}s remaining
+                            </span>
+
+                            <div className="flex w-full gap-3 pt-2">
+                                <Button 
+                                    onClick={() => handleRespondRequest(activeRequest.id, 'refused')}
+                                    variant="outline" 
+                                    className="flex-1 h-11 rounded-xl font-bold border-red-500/30 text-red-500 hover:bg-red-500/10"
+                                >
+                                    <X size={16} className="mr-1" /> Decline
+                                </Button>
+                                <Button 
+                                    onClick={() => handleRespondRequest(activeRequest.id, 'accepted')}
+                                    className="flex-1 h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
+                                >
+                                    <Check size={16} className="mr-1" /> Accept
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

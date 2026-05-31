@@ -20,6 +20,8 @@ interface GameSession {
     daily_number: number;
     created_at: string;
     notified_at: string | null;
+    opponent?: string | null;
+    winner?: string | null;
 }
 
 export default function HistoryPage() {
@@ -272,8 +274,18 @@ export default function HistoryPage() {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-bold text-base leading-snug">
-                                                        {session.table_name}
+                                                        {session.opponent ? `${session.table_name} Duel` : session.table_name}
                                                     </h3>
+                                                    {session.opponent && (
+                                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                                                            vs {session.opponent}
+                                                        </p>
+                                                    )}
+                                                    {session.status === 'completed' && (
+                                                        <div className="mt-1.5 text-[9px] uppercase font-black tracking-widest text-amber-500 flex items-center gap-1">
+                                                            👑 {session.winner ? `Winner: ${session.winner}` : 'Draw / No Winner'}
+                                                        </div>
+                                                    )}
                                                     <div className="flex items-center gap-1.5 mt-1 text-muted-foreground text-[10px] uppercase font-bold tracking-wider">
                                                         <span className="bg-muted px-2 py-0.5 rounded-md">
                                                             {session.game_type}

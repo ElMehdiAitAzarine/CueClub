@@ -21,6 +21,12 @@ urlpatterns = [
     path('get-profile', views.get_profile, name='get_profile'),
     path('update-profile', views.update_profile, name='update_profile'),
     path('guest-login', views.guest_login, name='guest_login'),
+    # Challenge Matchmaking
+    path('connected-players', views.get_connected_players, name='connected_players'),
+    path('send-play-request', views.send_play_request, name='send_play_request'),
+    path('poll-play-requests', views.poll_play_requests, name='poll_play_requests'),
+    path('respond-play-request', views.respond_play_request, name='respond_play_request'),
+    path('set-session-winner', views.set_session_winner, name='set_session_winner'),
     # Admin Panel Endpoints (using sys-admin to avoid conflict with django admin)
     path('sys-admin/login', views.admin_login, name='admin_login'),
     path('sys-admin/menu', views.manage_menu, name='manage_menu'),

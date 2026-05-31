@@ -27,6 +27,9 @@ COPY . .
 # Ensure uploads directory exists
 RUN mkdir -p uploads/user_photos uploads/qrcodes
 
+# Make startup script executable
+RUN chmod +x startup.sh
+
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core_project.wsgi:application"]
+CMD ["/app/startup.sh"]

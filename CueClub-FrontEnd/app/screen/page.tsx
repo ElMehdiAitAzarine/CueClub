@@ -164,33 +164,59 @@ export default function ScreenPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoggingIn(true)
-        try {
-            const res = await fetch('/api/sys-admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...loginForm, login_type: 'screen' })
-            })
-            if (res.ok) {
-                const data = await res.json()
-                localStorage.setItem('cueclub_admin_token', data.token)
-                localStorage.setItem('cueclub_admin_level', data.admin_level)
-                localStorage.setItem('cueclub_screen_login_timestamp', data.login_timestamp)
-                localStorage.setItem('cueclub_screen_session_duration', String(data.session_duration_hours))
-                setIsLoggedIn(true)
-                fetchData()
-                pollInterval.current = setInterval(() => {
-                    if (checkSessionValidity()) {
-                        fetchData()
-                    }
-                }, 5000)
-            } else {
-                alert("Invalid Admin Credentials")
+        
+        const maxRetries = 3
+        let lastError = ''
+        
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const controller = new AbortController()
+                const timeout = setTimeout(() => controller.abort(), attempt === 0 ? 15000 : 10000)
+                
+                const res = await fetch('/api/sys-admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...loginForm, login_type: 'screen' }),
+                    signal: controller.signal
+                })
+                clearTimeout(timeout)
+                
+                if (res.ok) {
+                    const data = await res.json()
+                    localStorage.setItem('cueclub_admin_token', data.token)
+                    localStorage.setItem('cueclub_admin_level', data.admin_level)
+                    localStorage.setItem('cueclub_screen_login_timestamp', data.login_timestamp)
+                    localStorage.setItem('cueclub_screen_session_duration', String(data.session_duration_hours))
+                    setIsLoggedIn(true)
+                    fetchData()
+                    pollInterval.current = setInterval(() => {
+                        if (checkSessionValidity()) {
+                            fetchData()
+                        }
+                    }, 5000)
+                    setIsLoggingIn(false)
+                    return
+                }
+                
+                // Real auth failure — don't retry
+                if (res.status === 401 || res.status === 400) {
+                    alert("Invalid Admin Credentials")
+                    setIsLoggingIn(false)
+                    return
+                }
+                
+                lastError = `Server error (${res.status})`
+            } catch (err: any) {
+                lastError = err.name === 'AbortError' ? 'Request timed out' : 'Connection error'
+                // Wait briefly before retrying (cold-start recovery)
+                if (attempt < maxRetries - 1) {
+                    await new Promise(r => setTimeout(r, 1500))
+                }
             }
-        } catch (err) {
-            alert("Connection error")
-        } finally {
-            setIsLoggingIn(false)
         }
+        
+        alert(lastError || "Connection failed after multiple attempts")
+        setIsLoggingIn(false)
     }
 
     if (loading) {

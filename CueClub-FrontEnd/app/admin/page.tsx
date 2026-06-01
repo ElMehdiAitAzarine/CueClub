@@ -554,7 +554,7 @@ export default function AdminPage() {
                                     group: t('admin.gamingArena', 'Gaming Arena'),
                                     items: [
                                         { id: 'sessions', icon: Clock, label: t('admin.liveSessions', 'Live Sessions'), level: 'simple_admin' },
-                                        { id: 'games', icon: Gamepad2, label: t('admin.tableSetup', 'Table Setup'), level: 'super_admin' },
+                                        { id: 'games', icon: Gamepad2, label: t('admin.tableSetup', 'Table Setup'), level: 'simple_admin' },
                                     ]
                                 },
                                 {

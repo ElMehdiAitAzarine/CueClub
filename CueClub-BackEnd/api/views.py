@@ -1138,9 +1138,6 @@ def admin_login(request):
 
 @api_view(['GET', 'POST'])
 def manage_menu(request):
-    if not check_admin_role(request, "super_admin"):
-        return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
-    
     if request.method == 'GET':
         items = Menu.objects.all().order_by('category', 'name')
         return Response([{
@@ -1153,6 +1150,9 @@ def manage_menu(request):
             "is_available": i.is_available,
             "popularity": i.popularity
         } for i in items])
+        
+    if not check_admin_role(request, "super_admin"):
+        return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
     
     data = request.data
     item = Menu.objects.create(

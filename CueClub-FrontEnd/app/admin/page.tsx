@@ -1232,7 +1232,7 @@ export default function AdminPage() {
                         )}
 
                         {activeTab === 'settings' && (
-                            <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 flex-1 overflow-y-auto custom-scrollbar pr-2">
                                 <SessionSettingsPanel
                                     isDark={isDark}
                                     sessionConfig={sessionConfig}

@@ -56,7 +56,7 @@ export default function SignupPage() {
 
     const [availableGames, setAvailableGames] = useState<GameType[]>([])
 
-    const progress = (step / 3) * 100
+    const progress = (step / 2) * 100
 
     useEffect(() => {
         fetch('/api/sys-admin/game-types')
@@ -241,7 +241,7 @@ export default function SignupPage() {
                 localStorage.setItem('cueclub_user_id', result.id);
                 localStorage.setItem('cueclub_user_name', `${formData.firstName} ${formData.lastName}`);
                 localStorage.setItem('cueclub_logged_in', 'true');
-                setStep(3)
+                setStep(2)
             } else {
                 alert(result.detail || result.message || "Registration failed")
             }
@@ -259,11 +259,7 @@ export default function SignupPage() {
 
     const handleNext = () => {
         if (step === 1) {
-            if (validateStep1()) setStep(2)
-        } else if (step === 2) {
-            handleRegistration()
-        } else if (step < 3) {
-            setStep(step + 1)
+            if (validateStep1()) handleRegistration()
         }
     }
 
@@ -304,12 +300,12 @@ export default function SignupPage() {
             <main className="flex-1 flex items-center justify-center p-2 relative z-10 overflow-hidden min-h-0">
                 <div className="w-full max-w-lg space-y-3 px-2 flex flex-col min-h-0">
                     {/* Progress Indicator */}
-                    {step < 3 && (
+                    {step < 2 && (
                         <div className="space-y-2 shrink-0">
                             <div className="flex justify-between items-end">
                                 <div>
                                     <h1 className="text-lg md:text-xl font-bold text-foreground">Create Account</h1>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">Step {step} of 3</p>
+                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">Step {step} of 2</p>
                                 </div>
                             </div>
                             <div className="relative h-1 bg-border/30 rounded-full overflow-hidden">
@@ -466,83 +462,24 @@ export default function SignupPage() {
                                     )}
                                 </CardContent>
                                 <CardFooter className="px-6 pb-5 pt-1 shrink-0">
-                                    <Button onClick={handleNext} className="w-full h-11 text-sm font-bold rounded-xl group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/20">
-                                        <span className="relative z-10 flex items-center">
-                                            Continue to Interests
-                                            <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                                        </span>
-                                    </Button>
-                                </CardFooter>
-                            </div>
-                        )}
-
-                        {step === 2 && (
-                            <div className="animate-in fade-in slide-in-from-right-4 duration-700 flex flex-col min-h-0">
-                                <CardHeader className="py-4 shrink-0">
-                                    <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                        <Gamepad2 className="text-primary" size={20} />
-                                        Your Arena
-                                    </CardTitle>
-                                    <CardDescription className="text-[10px]">
-                                        Select your competitive focus
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="px-6 space-y-2 shrink-1 overflow-y-auto">
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {availableGames.map((game) => {
-                                            const { style, active } = getGameStyle(game.name);
-                                            const isSelected = selectedGames.includes(String(game.id));
-                                            return (
-                                                <button
-                                                    key={game.id}
-                                                    type="button"
-                                                    onClick={() => toggleGame(String(game.id))}
-                                                    className={cn(
-                                                        "flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-300 relative overflow-hidden group/game",
-                                                        style,
-                                                        isSelected ? active : "border-white/5 bg-white/[0.02]"
-                                                    )}
-                                                >
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/game:opacity-100 transition-opacity" />
-                                                    <div className="text-3xl relative z-10">{getGameIcon(game.name)}</div>
-                                                    <div className="flex-1 min-w-0 relative z-10">
-                                                        <h4 className="font-black uppercase tracking-tight text-white line-clamp-1 group-hover/game:text-primary transition-colors">
-                                                            {game.name}
-                                                        </h4>
-                                                        <p className="text-[9px] text-muted-foreground leading-tight line-clamp-2">{game.description}</p>
-                                                    </div>
-                                                    {isSelected && (
-                                                        <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-lg shadow-primary/20 relative z-10">
-                                                            <Check className="h-3 w-3 stroke-[3px]" />
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="px-6 pb-5 pt-3 flex gap-3 shrink-0">
-                                    <Button variant="ghost" onClick={handleBack} className="h-11 px-4 rounded-xl hover:bg-white/5 text-xs font-semibold" disabled={isSubmitting}>
-                                        Back
-                                    </Button>
-                                    <Button onClick={handleNext} className="flex-1 h-11 text-sm font-bold rounded-xl group shadow-lg shadow-primary/20 transition-all duration-300" disabled={selectedGames.length === 0 || isSubmitting}>
+                                    <Button onClick={handleNext} className="w-full h-11 text-sm font-bold rounded-xl group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/20" disabled={isSubmitting}>
                                         {isSubmitting ? (
-                                            <span className="flex items-center gap-2">
+                                            <span className="flex items-center gap-2 justify-center w-full">
                                                 <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                                 Processing...
                                             </span>
                                         ) : (
-                                            <>
+                                            <span className="relative z-10 flex items-center justify-center w-full">
                                                 Finalize Registration
-                                                <CheckCircle2 className="ml-2 h-4 w-4" />
-                                            </>
+                                                <CheckCircle2 className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                            </span>
                                         )}
                                     </Button>
                                 </CardFooter>
                             </div>
                         )}
 
-                        {step === 3 && (
+                        {step === 2 && (
                             <div className="animate-in zoom-in-95 duration-1000 flex flex-col min-h-0">
                                 <CardContent className="pt-8 pb-8 px-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
                                     <div className="relative">
@@ -576,7 +513,7 @@ export default function SignupPage() {
                         )}
                     </Card>
 
-                    {step < 3 && (
+                    {step < 2 && (
                         <p className="text-center text-[10px] text-muted-foreground pt-1 shrink-0">
                             Already part of the legacy?{' '}
                             <Link href="/login" className="text-primary hover:text-primary/80 transition-colors font-bold underline underline-offset-4 decoration-primary/30">

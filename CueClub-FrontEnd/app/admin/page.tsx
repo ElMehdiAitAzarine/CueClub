@@ -129,6 +129,15 @@ interface GameType {
     description: string;
 }
 
+interface GamingTable {
+    id: number;
+    name: string;
+    number: number;
+    club: string;
+    game_type_id: number | null;
+    game_type_name: string | null;
+}
+
 export default function AdminPage() {
     const { t } = useTranslation()
     const router = useRouter()
@@ -149,6 +158,7 @@ export default function AdminPage() {
     const [historyFilter, setHistoryFilter] = useState('All')
     const [historySearch, setHistorySearch] = useState('')
     const [gameTypes, setGameTypes] = useState<GameType[]>([])
+    const [gamingTables, setGamingTables] = useState<GamingTable[]>([])
     const [admins, setAdmins] = useState<AdminUser[]>([])
 
     // UI states
@@ -255,14 +265,15 @@ export default function AdminPage() {
 
     const fetchAllData = async () => {
         try {
-            const [wRes, mRes, oRes, cRes, sRes, fRes, gtRes] = await Promise.all([
+            const [wRes, mRes, oRes, cRes, sRes, fRes, gtRes, tRes] = await Promise.all([
                 fetchWithAuth('/api/sys-admin/waiters'),
                 fetchWithAuth('/api/sys-admin/menu'),
                 fetchWithAuth('/api/sys-admin/orders'),
                 fetchWithAuth('/api/sys-admin/clients'),
                 fetchWithAuth('/api/sys-admin/sessions'),
                 fetchWithAuth('/api/sys-admin/financials'),
-                fetchWithAuth('/api/sys-admin/game-types')
+                fetchWithAuth('/api/sys-admin/game-types'),
+                fetchWithAuth('/api/sys-admin/gaming-tables')
             ])
             if (wRes.ok) setWaiters(await wRes.json())
             if (mRes.ok) setMenu(await mRes.json())
@@ -271,6 +282,7 @@ export default function AdminPage() {
             if (sRes.ok) setSessions(await sRes.json())
             if (fRes.ok) setFinancials(await fRes.json())
             if (gtRes.ok) setGameTypes(await gtRes.json())
+            if (tRes.ok) setGamingTables(await tRes.json())
 
             if (localStorage.getItem('cueclub_admin_level') === 'super_admin') {
                 const aRes = await fetchWithAuth('/api/sys-admin/admins')
@@ -405,7 +417,7 @@ export default function AdminPage() {
         }
     }
 
-    const handleDelete = async (type: Tab, id: number) => {
+    const handleDelete = async (type: string, id: number) => {
         if (!confirm('Are you sure?')) return
         const apiType = type === 'games' ? 'game-types' : type;
         try {
@@ -1139,64 +1151,48 @@ export default function AdminPage() {
                         )}
 
                         {activeTab === 'history' && (
-                            <section className="space-y-4 h-full flex flex-col">
-                                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 shrink-0">
-                                    <div className="flex items-center gap-6">
-                                        <h2 className={cn("text-xl font-black uppercase italic", isDark ? 'text-white/50' : 'text-black')}>Master History</h2>
-                                        <div className={cn("flex rounded-lg p-1 border", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
-                                            {['All', 'Session', 'Order', 'Finance'].map(f => (
-                                                <button
-                                                    key={f}
-                                                    onClick={() => setHistoryFilter(f)}
-                                                    className={cn(
-                                                        "px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all",
-                                                        historyFilter === f 
-                                                            ? "bg-primary text-black shadow-lg" 
-                                                            : isDark 
-                                                                ? "text-white/40 hover:text-white" 
-                                                                : "text-[#4A4540] hover:text-black"
-                                                    )}
-                                                >
-                                                    {f}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className={cn("flex border rounded-lg h-9 px-4 items-center gap-3 min-w-[300px] transition-all", isDark ? 'bg-white/5 border-white/10' : 'bg-white border-[#C5BFB5]')}>
-                                        <Search size={14} className={cn(isDark ? 'text-white/20' : 'text-[#8A857E]')} />
-                                        <input
-                                            placeholder="Search entire vault..."
-                                            value={historySearch}
-                                            onChange={(e) => setHistorySearch(e.target.value)}
-                                            className={cn("bg-transparent border-none outline-none text-xs font-bold flex-1", isDark ? 'text-white' : 'text-black placeholder:text-[#8A857E]')}
-                                        />
+                            <section className="space-y-4 flex-1 flex flex-col min-h-0">
+                                <div className="flex justify-between items-center shrink-0">
+                                    <h2 className={cn("text-lg font-black uppercase italic", isDark ? 'text-white/40' : 'text-[#1A1A1A]/50')}>System Event Ledger</h2>
+                                    <div className="flex gap-2">
+                                        {['All', 'Session', 'Order', 'Finance'].map(filter => (
+                                            <Button
+                                                key={filter}
+                                                onClick={() => setHistoryFilter(filter)}
+                                                className={cn(
+                                                    "h-8 rounded-xl px-4 font-black uppercase tracking-widest text-[9px] transition-all",
+                                                    historyFilter === filter
+                                                        ? "bg-primary text-black shadow-lg shadow-primary/30"
+                                                        : isDark ? "bg-white/5 text-white/50 hover:text-white hover:bg-white/10" : "bg-white border border-[#D5D0C8] text-[#1A1A1A]/70 hover:bg-[#E8E4DC]"
+                                                )}
+                                            >
+                                                {filter}
+                                            </Button>
+                                        ))}
                                     </div>
                                 </div>
-                                <div className={cn("border rounded-[2rem] overflow-hidden flex-1 relative transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-white border-[#D5D0C8] shadow-sm shadow-black/5')}>
-                                    <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
+                                <div className={cn("border rounded-[2.5rem] overflow-hidden flex-1 relative transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/80 border-[#D5D0C8]')}>
+                                    <div className="absolute inset-0 overflow-y-auto">
                                         <table className="w-full text-left">
-                                            <thead className={cn("sticky top-0 z-10 backdrop-blur-md", isDark ? 'bg-white/5' : 'bg-[#E8E4DC]')}>
+                                            <thead className={cn("sticky top-0 z-10 backdrop-blur-md border-b", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
                                                 <tr>
-                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? "text-white/40" : "text-[#4A4540]/80")}>Classification</th>
-                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? "text-white/40" : "text-[#4A4540]/80")}>Descriptor</th>
-                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? "text-white/40" : "text-[#4A4540]/80")}>Outcome</th>
-                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? "text-white/40" : "text-[#4A4540]/80")}>Metadata</th>
-                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-right", isDark ? "text-white/40" : "text-[#4A4540]/80")}>Timestamp</th>
+                                                    <th className={cn("px-6 py-5 text-[10px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Category</th>
+                                                    <th className={cn("px-6 py-5 text-[10px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Activity Details</th>
+                                                    <th className={cn("px-6 py-5 text-[10px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Status</th>
+                                                    <th className={cn("px-6 py-5 text-[10px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Telemetry</th>
+                                                    <th className={cn("px-6 py-5 text-[10px] font-black uppercase tracking-widest text-right", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Timestamp</th>
                                                 </tr>
                                             </thead>
                                             <tbody className={cn("divide-y", isDark ? 'divide-white/5' : 'divide-[#D5D0C8]')}>
                                                 {historyData
                                                     .filter(rec => historyFilter === 'All' || rec.category === historyFilter)
-                                                    .filter(rec => !historySearch ||
-                                                        rec.detail?.toLowerCase().includes(historySearch.toLowerCase()) ||
-                                                        rec.info?.toLowerCase().includes(historySearch.toLowerCase())
-                                                    )
-                                                    .map((rec, idx) => (
-                                                        <tr key={idx} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/20')}>
+                                                    .filter(rec => !searchTerm || rec.detail.toLowerCase().includes(searchTerm.toLowerCase()) || rec.info.toLowerCase().includes(searchTerm.toLowerCase()))
+                                                    .map((rec, index) => (
+                                                        <tr key={index} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/40')}>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className={cn(
-                                                                        "w-1.5 h-1.5 rounded-full shadow-[0_0_8px]",
+                                                                        "w-2.5 h-2.5 rounded-full shadow-lg shrink-0",
                                                                         rec.category === 'Session' ? "bg-primary shadow-primary/50" :
                                                                             rec.category === 'Order' ? "bg-amber-500 shadow-amber-500/50" : "bg-emerald-500 shadow-emerald-500/50"
                                                                     )} />
@@ -1226,6 +1222,124 @@ export default function AdminPage() {
                                                     ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {activeTab === 'games' && (
+                            <section className="space-y-6 flex-1 flex flex-col min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                    {/* Gaming Tables Pane */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center px-4">
+                                            <h2 className={cn("text-lg font-black uppercase italic", isDark ? 'text-white/40' : 'text-[#1A1A1A]/50')}>Gaming Tables</h2>
+                                            <Button 
+                                                className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-black font-black uppercase tracking-widest rounded-xl px-4 h-8 text-[9px] transition-all"
+                                                onClick={() => setShowModal({ type: 'gaming-tables', data: null })}
+                                            >
+                                                <Plus className="mr-2" size={12} /> Add Table
+                                            </Button>
+                                        </div>
+                                        <div className={cn("border rounded-[2.5rem] overflow-hidden backdrop-blur-md relative transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/80 border-[#D5D0C8]')}>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left">
+                                                    <thead className={cn("border-b", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
+                                                        <tr>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Name</th>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Number</th>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Category</th>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-right", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className={cn("divide-y", isDark ? 'divide-white/5' : 'divide-[#D5D0C8]')}>
+                                                        {gamingTables.filter(t => !searchTerm || t.name.toLowerCase().includes(searchTerm.toLowerCase())).map(table => (
+                                                            <tr key={table.id} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/40')}>
+                                                                <td className="px-6 py-4">
+                                                                    <div>
+                                                                        <p className={cn("font-black uppercase tracking-tight text-xs", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{table.name}</p>
+                                                                        <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">{table.club}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <span className={cn("px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest", isDark ? 'bg-white/5 border-white/10 text-white/80' : 'bg-white border-[#D5D0C8]')}>
+                                                                        #{table.number}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <span className="text-[9px] font-black text-primary uppercase tracking-wider bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                                                                        {table.game_type_name || 'General'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <Button variant="ghost" size="icon" className="bg-white/5 rounded-xl h-8 w-8 hover:bg-primary hover:text-black" onClick={() => setShowModal({ type: 'gaming-tables', data: table })}>
+                                                                            <Edit size={12} />
+                                                                        </Button>
+                                                                        <Button variant="ghost" size="icon" className="bg-red-500/10 text-red-500 rounded-xl h-8 w-8 hover:bg-red-500 hover:text-white" onClick={() => handleDelete('gaming-tables', table.id)}>
+                                                                            <Trash2 size={12} />
+                                                                        </Button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Game Types Pane */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center px-4">
+                                            <h2 className={cn("text-lg font-black uppercase italic", isDark ? 'text-white/40' : 'text-[#1A1A1A]/50')}>Game Categories</h2>
+                                            <Button 
+                                                className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-black font-black uppercase tracking-widest rounded-xl px-4 h-8 text-[9px] transition-all"
+                                                onClick={() => setShowModal({ type: 'game-types', data: null })}
+                                            >
+                                                <Plus className="mr-2" size={12} /> Add Category
+                                            </Button>
+                                        </div>
+                                        <div className={cn("border rounded-[2.5rem] overflow-hidden backdrop-blur-md relative transition-all duration-300", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/80 border-[#D5D0C8]')}>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left">
+                                                    <thead className={cn("border-b", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
+                                                        <tr>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Category</th>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Stations</th>
+                                                            <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-right", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className={cn("divide-y", isDark ? 'divide-white/5' : 'divide-[#D5D0C8]')}>
+                                                        {gameTypes.filter(g => !searchTerm || g.name.toLowerCase().includes(searchTerm.toLowerCase())).map(gt => (
+                                                            <tr key={gt.id} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/40')}>
+                                                                <td className="px-6 py-4">
+                                                                    <div>
+                                                                        <p className={cn("font-black uppercase tracking-tight text-xs", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{gt.name}</p>
+                                                                        <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest italic">{gt.description || 'No specs'}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <span className={cn("px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest", isDark ? 'bg-white/5 border-white/10 text-white/80' : 'bg-white border-[#D5D0C8]')}>
+                                                                        {gt.station_count}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <Button variant="ghost" size="icon" className="bg-white/5 rounded-xl h-8 w-8 hover:bg-primary hover:text-black" onClick={() => setShowModal({ type: 'game-types', data: gt })}>
+                                                                            <Edit size={12} />
+                                                                        </Button>
+                                                                        <Button variant="ghost" size="icon" className="bg-red-500/10 text-red-500 rounded-xl h-8 w-8 hover:bg-red-500 hover:text-white" onClick={() => handleDelete('game-types', gt.id)}>
+                                                                            <Trash2 size={12} />
+                                                                        </Button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
@@ -1436,6 +1550,25 @@ export default function AdminPage() {
                                         <input name="image_path" defaultValue={showModal.data?.image_path} placeholder="Cover Image URL (Optional)" className="w-full bg-white/5 border-white/10 rounded-xl h-12 px-6 font-bold text-sm" />
                                     </div>
                                     <textarea name="description" defaultValue={showModal.data?.description} placeholder="Game Requirements / Specifications" className="w-full bg-white/5 border-white/10 rounded-xl h-20 p-4 font-bold text-sm" />
+                                </div>
+                            )}
+
+                            {showModal.type === 'gaming-tables' && (
+                                <div className="space-y-4 text-white">
+                                    <input name="name" defaultValue={showModal.data?.name} placeholder="Table Name (e.g., Billiards Table Alpha)" className="w-full bg-white/5 border-white/10 rounded-xl h-12 px-6 font-bold text-sm text-white" required />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <input name="number" type="number" min="1" defaultValue={showModal.data?.number} placeholder="Table Number (e.g., 1, 2)" className="w-full bg-white/5 border-white/10 rounded-xl h-12 px-6 font-bold text-sm text-white" required />
+                                        <input name="club" defaultValue={showModal.data?.club || 'CueClub'} placeholder="Club (e.g., CueClub)" className="w-full bg-white/5 border-white/10 rounded-xl h-12 px-6 font-bold text-sm text-white" />
+                                    </div>
+                                    <div className="relative group">
+                                        <select name="game_type_id" defaultValue={showModal.data?.game_type_id || ''} className="w-full bg-white/5 border-white/10 rounded-xl h-12 px-6 font-bold appearance-none cursor-pointer focus:border-primary/50 transition-all outline-none text-sm text-white">
+                                            <option value="" className="bg-[#0A0A0A]">Select Game Category</option>
+                                            {gameTypes.map(gt => (
+                                                <option key={gt.id} value={gt.id} className="bg-[#0A0A0A]">{gt.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 group-hover:text-primary transition-colors pointer-events-none" size={18} />
+                                    </div>
                                 </div>
                             )}
 

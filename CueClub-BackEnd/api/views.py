@@ -1607,6 +1607,88 @@ def game_type_detail(request, pk):
     if request.method == 'DELETE':
         gtype.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+def manage_gaming_tables(request):
+    if not check_admin_role(request, "simple_admin"):
+        return Response({"detail": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+        
+    if request.method == 'GET':
+        tables = GamingTable.objects.select_related('game_type').all().order_by('id_gamet')
+        return Response([{
+            "id": t.id_gamet,
+            "name": t.gamet_name,
+            "number": t.gamet_number,
+            "club": t.gamet_club,
+            "game_type_id": t.game_type.id if t.game_type else None,
+            "game_type_name": t.game_type.name if t.game_type else None
+        } for t in tables])
+        
+    if not check_admin_role(request, "super_admin"):
+        return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+        
+    data = request.data
+    gtype_id = data.get('game_type_id')
+    gtype = None
+    if gtype_id:
+        try:
+            gtype = GameType.objects.get(pk=gtype_id)
+        except GameType.DoesNotExist:
+            return Response({"detail": "Game Type not found"}, status=status.HTTP_400_BAD_REQUEST)
+            
+    table = GamingTable.objects.create(
+        gamet_name=data.get('name'),
+        gamet_number=int(data.get('number', 1)),
+        gamet_club=data.get('club', 'CueClub'),
+        game_type=gtype
+    )
+    return Response({"status": "success", "id": table.id_gamet})
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def gaming_table_detail(request, pk):
+    if not check_admin_role(request, "simple_admin"):
+        return Response({"detail": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+        
+    try:
+        table = GamingTable.objects.get(pk=pk)
+    except GamingTable.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == 'GET':
+        return Response({
+            "id": table.id_gamet,
+            "name": table.gamet_name,
+            "number": table.gamet_number,
+            "club": table.gamet_club,
+            "game_type_id": table.game_type.id if table.game_type else None,
+            "game_type_name": table.game_type.name if table.game_type else None
+        })
+        
+    if not check_admin_role(request, "super_admin"):
+        return Response({"detail": "Super Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+        
+    if request.method == 'PUT':
+        data = request.data
+        table.gamet_name = data.get('name', table.gamet_name)
+        table.gamet_number = int(data.get('number', table.gamet_number))
+        table.gamet_club = data.get('club', table.gamet_club)
+        
+        gtype_id = data.get('game_type_id')
+        if gtype_id is not None:
+            if gtype_id == "":
+                table.game_type = None
+            else:
+                try:
+                    table.game_type = GameType.objects.get(pk=gtype_id)
+                except GameType.DoesNotExist:
+                    return Response({"detail": "Game Type not found"}, status=status.HTTP_400_BAD_REQUEST)
+        table.save()
+        return Response({"status": "updated"})
+        
+    if request.method == 'DELETE':
+        table.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 @api_view(['GET', 'POST'])
 def manage_admins(request):
     if not check_admin_role(request, "super_admin"):

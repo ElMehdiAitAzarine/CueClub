@@ -66,6 +66,10 @@ export default function HomePage() {
     const [loading, setLoading] = useState(true)
     const [joining, setJoining] = useState<number | null>(null)
     const [actionLoading, setActionLoading] = useState<number | null>(null)
+
+    const [selectedGameFilter, setSelectedGameFilter] = useState<string>('All')
+    const gameCategories = ['All', ...Array.from(new Set(tables.map(t => t.game_type).filter(Boolean)))]
+    const filteredTables = tables.filter(t => selectedGameFilter === 'All' || t.game_type === selectedGameFilter)
     
     const [latestOrder, setLatestOrder] = useState<any>(null)
     
@@ -506,73 +510,99 @@ export default function HomePage() {
 
                 <section className="space-y-4">
                     <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground px-2">{t('userHome.livingArena', 'Living Arena Status')}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {tables.map(table => (
-                            <Card key={table.id} className={cn("rounded-[2rem] overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
-                                <CardHeader className="pb-2">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle className="text-xl font-black italic">{table.name}</CardTitle>
-                                            <CardDescription className={cn("text-[10px] uppercase font-black tracking-[0.2em]", isDark ? "text-white/40" : "text-[#4A4540]/60")}>{t('userHome.table', 'Table')} #{table.number}</CardDescription>
-                                        </div>
-                                        <div className="bg-primary/10 border border-primary/30 px-3 py-1 rounded-full">
-                                            <span className="text-[9px] font-black uppercase text-primary tracking-widest">{table.game_type}</span>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2 min-h-[120px]">
-                                        {table.players.map((player, idx) => (
-                                            <div key={player.session_id} className={cn(
-                                                "flex items-center justify-between p-3 rounded-2xl border",
-                                                player.status === 'notified' ? "bg-primary/10 border-primary/30" : 
-                                                player.status === 'playing' ? "bg-blue-500/10 border-blue-500/30" : 
-                                                (player.status === 'completed' || player.status === 'cancelled') ? (isDark ? "bg-white/[0.01] border-white/5 opacity-40" : "bg-black/[0.01] border-black/[0.05] opacity-40") : 
-                                                isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]"
-                                            )}>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[10px] font-black">{player.status === 'playing' ? '🎮' : idx + 1}</span>
-                                                    <span className="text-sm font-semibold">{player.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {player.id === parseInt(userId!) && player.status === 'notified' && (
-                                                        <Button 
-                                                            onClick={() => handleConfirmPlay(player.session_id)}
-                                                            size="sm"
-                                                            className="h-7 text-[8px] bg-blue-600 hover:bg-blue-500 font-black px-2 rounded-lg"
-                                                        >
-                                                            {t('userHome.ready', 'READY')}
-                                                        </Button>
-                                                    )}
-                                                    {player.id === parseInt(userId!) && player.status === 'playing' && (
-                                                        <Button 
-                                                            onClick={() => handleCancelSession(player.session_id)}
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="h-7 text-[8px] border-red-500/50 text-red-500 hover:bg-red-500/10 font-black px-2 rounded-lg"
-                                                        >
-                                                            {t('userHome.finish', 'FINISH')}
-                                                        </Button>
-                                                    )}
-                                                    {player.id === parseInt(userId!) && (
-                                                        <button onClick={() => handleCancelSession(player.session_id)} className="text-muted-foreground hover:text-red-500"><XCircle size={16}/></button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Button 
-                                        onClick={() => handleJoinTable(table.id)}
-                                        disabled={joining === table.id || table.players.some(p => p.id === parseInt(userId!))}
-                                        className="w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px] bg-primary text-black"
-                                    >
-                                        {t('userHome.joinLine', 'JOIN LINE')}
-                                    </Button>
-                                </CardFooter>
-                            </Card>
+                    
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar -mx-2 px-2 scrollbar-none">
+                        {gameCategories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedGameFilter(cat)}
+                                className={cn(
+                                    "px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shrink-0 border",
+                                    selectedGameFilter === cat
+                                        ? "bg-primary text-black border-primary shadow-lg shadow-primary/20 scale-105"
+                                        : isDark
+                                            ? "bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                                            : "bg-[#EFECE5] border-[#D5D0C8] text-[#4A4540] hover:bg-[#E8E4DC] hover:text-[#1A1A1A]"
+                                )}
+                            >
+                                {cat}
+                            </button>
                         ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filteredTables.length === 0 ? (
+                            <div className={cn("col-span-1 md:col-span-2 text-center py-12 text-xs font-black uppercase tracking-widest border rounded-[2rem]", isDark ? "bg-white/[0.02] border-white/5 text-white/40" : "bg-[#EFECE5] border-[#D5D0C8] text-[#4A4540]/60")}>
+                                No tables active in this category
+                            </div>
+                        ) : (
+                            filteredTables.map(table => (
+                                <Card key={table.id} className={cn("rounded-[2rem] overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
+                                    <CardHeader className="pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <CardTitle className="text-xl font-black italic">{table.name}</CardTitle>
+                                                <CardDescription className={cn("text-[10px] uppercase font-black tracking-[0.2em]", isDark ? "text-white/40" : "text-[#4A4540]/60")}>{t('userHome.table', 'Table')} #{table.number}</CardDescription>
+                                            </div>
+                                            <div className="bg-primary/10 border border-primary/30 px-3 py-1 rounded-full">
+                                                <span className="text-[9px] font-black uppercase text-primary tracking-widest">{table.game_type}</span>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2 min-h-[120px]">
+                                            {table.players.map((player, idx) => (
+                                                <div key={player.session_id} className={cn(
+                                                    "flex items-center justify-between p-3 rounded-2xl border",
+                                                    player.status === 'notified' ? "bg-primary/10 border-primary/30" : 
+                                                    player.status === 'playing' ? "bg-blue-500/10 border-blue-500/30" : 
+                                                    (player.status === 'completed' || player.status === 'cancelled') ? (isDark ? "bg-white/[0.01] border-white/5 opacity-40" : "bg-black/[0.01] border-black/[0.05] opacity-40") : 
+                                                    isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]"
+                                                )}>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[10px] font-black">{player.status === 'playing' ? '🎮' : idx + 1}</span>
+                                                        <span className="text-sm font-semibold">{player.name}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {player.id === parseInt(userId!) && player.status === 'notified' && (
+                                                            <Button 
+                                                                onClick={() => handleConfirmPlay(player.session_id)}
+                                                                size="sm"
+                                                                className="h-7 text-[8px] bg-blue-600 hover:bg-blue-500 font-black px-2 rounded-lg"
+                                                            >
+                                                                {t('userHome.ready', 'READY')}
+                                                            </Button>
+                                                        )}
+                                                        {player.id === parseInt(userId!) && player.status === 'playing' && (
+                                                            <Button 
+                                                                onClick={() => handleCancelSession(player.session_id)}
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-7 text-[8px] border-red-500/50 text-red-500 hover:bg-red-500/10 font-black px-2 rounded-lg"
+                                                            >
+                                                                {t('userHome.finish', 'FINISH')}
+                                                            </Button>
+                                                        )}
+                                                        {player.id === parseInt(userId!) && (
+                                                            <button onClick={() => handleCancelSession(player.session_id)} className="text-muted-foreground hover:text-red-500"><XCircle size={16}/></button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button 
+                                            onClick={() => handleJoinTable(table.id)}
+                                            disabled={joining === table.id || table.players.some(p => p.id === parseInt(userId!))}
+                                            className="w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px] bg-primary text-black"
+                                        >
+                                            {t('userHome.joinLine', 'JOIN LINE')}
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))
+                        )}
                     </div>
                 </section>
             </main>

@@ -167,6 +167,8 @@ export default function AdminPage() {
     const [adminLevel, setAdminLevel] = useState<string | null>(null)
     const [winnerModal, setWinnerModal] = useState<GameSession | null>(null)
     const [settingWinner, setSettingWinner] = useState(false)
+    const [dataLoading, setDataLoading] = useState(false)
+    const [hasFetched, setHasFetched] = useState(false)
 
     // Session management states
     const [sessionConfig, setSessionConfig] = useState<{admin_session_hours: number, screen_session_hours: number, user_session_hours: number} | null>(null)
@@ -264,6 +266,7 @@ export default function AdminPage() {
     }, [])
 
     const fetchAllData = async () => {
+        setDataLoading(true)
         try {
             const [wRes, mRes, oRes, cRes, sRes, fRes, gtRes, tRes] = await Promise.all([
                 fetchWithAuth('/api/sys-admin/waiters'),
@@ -291,8 +294,11 @@ export default function AdminPage() {
 
             const hRes = await fetchWithAuth('/api/sys-admin/history')
             if (hRes.ok) setHistoryData(await hRes.json())
+            setHasFetched(true)
         } catch (err) {
             console.error("Failed to fetch admin data", err)
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -647,7 +653,20 @@ export default function AdminPage() {
                                                                     activeTab === 'settings' ? t('admin.sessionSettings', 'Session Settings') :
                                                                         activeTab === 'history' ? t('admin.systemLogs', 'System Logs') : t('admin.financialLedger', 'Financial Ledger')}
                                 </h1>
-                                <p className="text-primary font-black tracking-[0.4em] uppercase text-[7px] italic opacity-80">{t('admin.adminCommandNode', 'Admin Command Node')}</p>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-primary font-black tracking-[0.4em] uppercase text-[7px] italic opacity-80">{t('admin.adminCommandNode', 'Admin Command Node')}</p>
+                                    {dataLoading && (
+                                        <span className={cn(
+                                            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest border transition-all duration-300 animate-pulse",
+                                            isDark 
+                                                ? "bg-primary/10 border-primary/20 text-primary" 
+                                                : "bg-[#E8E4DC] border-[#D5D0C8] text-[#1A1A1A]"
+                                        )}>
+                                            <Loader2 className="animate-spin text-primary" size={8} />
+                                            Syncing Vault...
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <LanguageToggle />
@@ -663,7 +682,21 @@ export default function AdminPage() {
                                 </div>
                             </div>
                         </header>
-
+                        {!hasFetched ? (
+                            <div className="flex-1 flex flex-col items-center justify-center gap-4">
+                                <div className="relative">
+                                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center animate-pulse">
+                                        <Loader2 className="animate-spin text-primary" size={32} />
+                                    </div>
+                                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-background animate-ping" />
+                                </div>
+                                <div className="text-center space-y-1">
+                                    <h3 className="text-sm font-black uppercase tracking-wider">Establishing Database Link...</h3>
+                                    <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Securing telemetric handshake with remote node</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
                         {activeTab === 'dashboard' && (
                             <div className="flex-1 flex flex-col min-h-0 gap-6">
                                 <div className={cn("flex items-center justify-between gap-4 shrink-0 px-8 py-4 border rounded-[2.5rem] backdrop-blur-2xl mx-2 relative overflow-hidden group/stats transition-all duration-300", isDark ? 'bg-white/[0.03] border-white/10 shadow-2xl' : 'bg-[#EFECE5]/80 border-[#D5D0C8] shadow-lg shadow-black/5')}>
@@ -932,10 +965,10 @@ export default function AdminPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </section>
+                                         ))}
+                                     </div>
+                                 </div>
+                             </section>
                         )}
 
                         {activeTab === 'clients' && (
@@ -964,7 +997,7 @@ export default function AdminPage() {
                                                         <td className={cn("px-8 py-6 font-black text-xs italic", isDark ? 'text-white/20' : 'text-[#8A857E]')}>#{client.id}</td>
                                                         <td className="px-8 py-6">
                                                             <div className="flex items-center gap-4">
-                                                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border italic font-black", isDark ? 'bg-white/5 border-white/10 text-white/20' : 'bg-white border-[#D5D0C8] text-[#8A857E]')}>
+                                                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border italic font-black", isDark ? 'bg-white/5 border-white/10 text-white/20' : 'bg-white border border-[#D5D0C8] text-[#8A857E]')}>
                                                                     {client.full_name?.charAt(0) || '?'}
                                                                 </div>
                                                                 <div>
@@ -1320,7 +1353,7 @@ export default function AdminPage() {
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-center">
-                                                                    <span className={cn("px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest", isDark ? 'bg-white/5 border-white/10 text-white/80' : 'bg-white border-[#D5D0C8]')}>
+                                                                    <span className={cn("px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest", isDark ? 'bg-white/5 border border-white/10 text-white/80' : 'bg-white border border-[#D5D0C8]')}>
                                                                         {gt.station_count}
                                                                     </span>
                                                                 </td>
@@ -1413,7 +1446,8 @@ export default function AdminPage() {
                                 </div>
                             </section>
                         )}
-                    </main>
+                        </>
+                        )}          </main>
                 </div>
             )}
 

@@ -26,7 +26,8 @@ import {
     Archive,
     Gamepad2,
     Settings,
-    Timer
+    Timer,
+    Filter
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -168,6 +169,7 @@ export default function AdminPage() {
     const [settingWinner, setSettingWinner] = useState(false)
     const [dataLoading, setDataLoading] = useState(false)
     const [hasFetched, setHasFetched] = useState(false)
+    const [gameFilter, setGameFilter] = useState<string>('All')
 
     // Session management states
     const [sessionConfig, setSessionConfig] = useState<{admin_session_hours: number, screen_session_hours: number, user_session_hours: number} | null>(null)
@@ -1030,7 +1032,39 @@ export default function AdminPage() {
                         {activeTab === 'sessions' && (
                             <section className="space-y-4 h-full flex flex-col">
                                 <div className="flex justify-between items-center shrink-0">
-                                    <h2 className={cn("text-xl font-black uppercase italic", isDark ? 'text-white' : 'text-[#1A1A1A]')}>Pool Command</h2>
+                                    <div className="flex items-center gap-4">
+                                        <h2 className={cn("text-xl font-black uppercase italic", isDark ? 'text-white' : 'text-[#1A1A1A]')}>Pool Command</h2>
+                                        <div className="flex items-center gap-2">
+                                            <Filter size={12} className="text-muted-foreground" />
+                                            <div className="flex gap-1.5">
+                                                <button
+                                                    onClick={() => setGameFilter('All')}
+                                                    className={cn(
+                                                        "h-7 rounded-lg px-3 font-black uppercase tracking-widest text-[8px] transition-all border",
+                                                        gameFilter === 'All'
+                                                            ? "bg-primary text-black shadow-lg shadow-primary/30 border-primary"
+                                                            : isDark ? "bg-white/5 text-white/50 hover:text-white hover:bg-white/10 border-white/10" : "bg-white text-[#1A1A1A]/60 hover:bg-[#E8E4DC] border-[#D5D0C8]"
+                                                    )}
+                                                >
+                                                    All
+                                                </button>
+                                                {gameTypes.map(gt => (
+                                                    <button
+                                                        key={gt.id}
+                                                        onClick={() => setGameFilter(gt.name)}
+                                                        className={cn(
+                                                            "h-7 rounded-lg px-3 font-black uppercase tracking-widest text-[8px] transition-all border",
+                                                            gameFilter === gt.name
+                                                                ? "bg-primary text-black shadow-lg shadow-primary/30 border-primary"
+                                                                : isDark ? "bg-white/5 text-white/50 hover:text-white hover:bg-white/10 border-white/10" : "bg-white text-[#1A1A1A]/60 hover:bg-[#E8E4DC] border-[#D5D0C8]"
+                                                        )}
+                                                    >
+                                                        {gt.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
                                     <Button className="bg-primary/20 text-primary border border-primary/30 font-black uppercase tracking-widest rounded-xl px-6 h-9 text-[10px] hover:bg-primary hover:text-black transition-all" onClick={() => setShowModal({ type: 'sessions' })}>
                                         <Plus className="mr-2" size={14} /> New Session
                                     </Button>
@@ -1050,7 +1084,15 @@ export default function AdminPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className={cn("divide-y", isDark ? 'divide-white/5' : 'divide-[#D5D0C8]')}>
-                                                {sessions.filter(s => !searchTerm || s.client?.toLowerCase().includes(searchTerm.toLowerCase()) || s.table?.toLowerCase().includes(searchTerm.toLowerCase())).map(session => (
+                                                {sessions.filter(s => {
+                                                    // Search filter
+                                                    const matchesSearch = !searchTerm || s.client?.toLowerCase().includes(searchTerm.toLowerCase()) || s.table?.toLowerCase().includes(searchTerm.toLowerCase())
+                                                    // Game type filter
+                                                    if (gameFilter === 'All') return matchesSearch
+                                                    const sessionTable = gamingTables.find(t => t.name === s.table || `Table ${t.number}` === s.table)
+                                                    const matchesGame = sessionTable?.game_type_name === gameFilter
+                                                    return matchesSearch && matchesGame
+                                                }).map(session => (
                                                     <tr key={session.id} className={cn("transition-colors group", isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#E8E4DC]/40')}>
                                                         <td className="px-8 py-6 font-black text-primary text-xl italic">#{session.daily_number}</td>
                                                         <td className="px-8 py-6">

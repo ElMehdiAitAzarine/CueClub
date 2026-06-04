@@ -7,33 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle2, ChevronLeft, ChevronRight, Gamepad2, UserCircle, Phone, Lock, Check, Camera, Upload, Sparkles, Mail } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, UserCircle, Phone, Lock, Check, Camera, Upload, Sparkles, Mail } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface GameType {
-    id: number;
-    name: string;
-    image_path: string;
-    description: string;
-}
 
-const getGameIcon = (name: string) => {
-    const n = name.toLowerCase();
-    if (n.includes('billiard')) return '🎱';
-    if (n.includes('snooker')) return '🎱';
-    if (n.includes('carrom')) return '🔘';
-    if (n.includes('dart')) return '🎯';
-    if (n.includes('ps5') || n.includes('playstation')) return '🎮';
-    return '🕹️';
-}
-
-const getGameStyle = (name: string) => {
-    const n = name.toLowerCase();
-    if (n.includes('billiard')) return { style: 'hover:bg-blue-500/10 hover:border-blue-500/50', active: 'bg-blue-500/20 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)]' };
-    if (n.includes('carrom')) return { style: 'hover:bg-amber-500/10 hover:border-amber-500/50', active: 'bg-amber-500/20 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)]' };
-    if (n.includes('dart')) return { style: 'hover:bg-red-500/10 hover:border-red-500/50', active: 'bg-red-500/20 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)]' };
-    return { style: 'hover:bg-primary/10 hover:border-primary/50', active: 'bg-primary/20 border-primary shadow-[0_0_20px_rgba(234,88,12,0.2)]' };
-}
 
 export default function SignupPage() {
     const router = useRouter()
@@ -50,20 +27,12 @@ export default function SignupPage() {
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [profileImage, setProfileImage] = useState<string | null>(null)
     const [profileFile, setProfileFile] = useState<File | null>(null)
-    const [selectedGames, setSelectedGames] = useState<string[]>([])
     const [isImageHovered, setIsImageHovered] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const [availableGames, setAvailableGames] = useState<GameType[]>([])
-
     const progress = (step / 2) * 100
 
-    useEffect(() => {
-        fetch('/api/sys-admin/game-types')
-            .then(res => res.json())
-            .then(data => setAvailableGames(data))
-            .catch(err => console.error("Failed to fetch games", err))
-    }, [])
+
 
     const validateStep1 = () => {
         const newErrors: Record<string, string> = {}
@@ -173,13 +142,7 @@ export default function SignupPage() {
         });
     }
 
-    const toggleGame = (gameId: string) => {
-        setSelectedGames((prev) =>
-            prev.includes(gameId)
-                ? prev.filter((id) => id !== gameId)
-                : [...prev, gameId]
-        )
-    }
+
 
     const handleRegistration = async () => {
         console.log("DEBUG: Form Data Check", {

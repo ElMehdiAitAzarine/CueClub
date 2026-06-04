@@ -29,7 +29,6 @@ export default function HistoryPage() {
     const router = useRouter()
     const { theme, toggleTheme, isDark } = useSectionTheme('user')
     const [userId, setUserId] = useState<string | null>(null)
-    const [deviceId, setDeviceId] = useState<string | null>(null)
     const [history, setHistory] = useState<GameSession[]>([])
     const [loading, setLoading] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
@@ -37,24 +36,22 @@ export default function HistoryPage() {
 
     useEffect(() => {
         const storedId = localStorage.getItem('cueclub_user_id')
-        const storedDeviceId = localStorage.getItem('cueclub_device_id')
         
-        if (!storedId || !storedDeviceId) {
+        if (!storedId) {
             router.push('/login')
             return
         }
 
         setUserId(storedId)
-        setDeviceId(storedDeviceId)
-        fetchHistory(storedId, storedDeviceId)
+        fetchHistory(storedId)
     }, [router])
 
-    const fetchHistory = async (clientId: string, devId: string, isRefresh = false) => {
+    const fetchHistory = async (clientId: string, isRefresh = false) => {
         if (isRefresh) setRefreshing(true)
         setError(null)
 
         try {
-            const res = await fetch(`/api/user-game-history?client_id=${clientId}&device_id=${devId}`, {
+            const res = await fetch(`/api/user-game-history?client_id=${clientId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -185,7 +182,7 @@ export default function HistoryPage() {
                         variant="ghost" 
                         size="icon" 
                         disabled={refreshing} 
-                        onClick={() => userId && deviceId && fetchHistory(userId, deviceId, true)} 
+                        onClick={() => userId && fetchHistory(userId, true)} 
                         className={cn("rounded-full hover:bg-primary/10 transition-colors", refreshing && "animate-spin")}
                     >
                         <RefreshCw size={16} />

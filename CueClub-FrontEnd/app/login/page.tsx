@@ -33,12 +33,6 @@ export default function LoginPage() {
         setLoading(true)
         setError(null)
 
-        let deviceId = localStorage.getItem('cueclub_device_id')
-        if (!deviceId) {
-            deviceId = 'dev_' + Math.random().toString(36).substr(2, 9)
-            localStorage.setItem('cueclub_device_id', deviceId)
-        }
-
         const maxRetries = 3
         let lastError = ''
 
@@ -52,8 +46,7 @@ export default function LoginPage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         phone: formData.phone,
-                        password: formData.password,
-                        device_id: deviceId
+                        password: formData.password
                     }),
                     signal: controller.signal
                 })

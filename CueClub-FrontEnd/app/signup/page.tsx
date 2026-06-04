@@ -182,18 +182,11 @@ export default function SignupPage() {
     }
 
     const handleRegistration = async () => {
-        let deviceId = localStorage.getItem('cueclub_device_id')
-        if (!deviceId) {
-            deviceId = 'dev_' + Math.random().toString(36).substr(2, 9)
-            localStorage.setItem('cueclub_device_id', deviceId)
-        }
-
         console.log("DEBUG: Form Data Check", {
             first_name: formData.firstName,
             last_name: formData.lastName,
             phone: formData.phone,
             password: formData.password ? "SET" : "EMPTY",
-            deviceId: deviceId,
             photoSelected: !!profileFile
         })
         const fd = new FormData()
@@ -202,8 +195,6 @@ export default function SignupPage() {
         fd.append('phone', formData.phone)
         fd.append('email', formData.email)
         fd.append('password', formData.password)
-        const trimmedDeviceId = deviceId?.trim();
-        fd.append('device_id', trimmedDeviceId)
         if (profileFile) {
             fd.append('photo', profileFile)
         }

@@ -96,7 +96,6 @@ interface ClientRecord {
     full_name: string;
     phone: string;
     email: string;
-    device_id: string;
 }
 
 interface GameSession {
@@ -987,7 +986,6 @@ export default function AdminPage() {
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>ID</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Client Profile</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Contact</th>
-                                                    <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-center", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Device Fingerprint</th>
                                                     <th className={cn("px-6 py-4 text-[9px] font-black uppercase tracking-widest text-right", isDark ? 'text-white/40' : 'text-[#4A4540]/80')}>Actions</th>
                                                 </tr>
                                             </thead>
@@ -1009,9 +1007,6 @@ export default function AdminPage() {
                                                         <td className="px-8 py-6 text-center">
                                                             <p className={cn("text-[10px] font-bold uppercase tracking-widest", isDark ? 'text-white' : 'text-[#1A1A1A]')}>{client.email || 'NO EMAIL'}</p>
                                                             <p className={cn("text-[10px] font-bold mt-1", isDark ? 'text-white/40' : 'text-[#6B6560]')}>{client.phone || 'NO PHONE'}</p>
-                                                        </td>
-                                                        <td className={cn("px-8 py-6 text-center text-[8px] font-mono", isDark ? 'text-white/30' : 'text-[#8A857E]')}>
-                                                            {client.device_id?.substring(0, 16) || 'UNLINKED NODE'}...
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">

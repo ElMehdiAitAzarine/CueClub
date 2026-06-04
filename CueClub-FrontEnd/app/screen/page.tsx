@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Users, Gamepad2, PlayCircle, Clock, QrCode, Filter, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
+import { Loader2, Users, Gamepad2, PlayCircle, Clock, Filter, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSectionTheme } from '@/hooks/use-section-theme'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -53,7 +53,6 @@ export default function ScreenPage() {
     const router = useRouter()
     const { theme, toggleTheme, isDark } = useSectionTheme('screen')
     const [tables, setTables] = useState<TableStatus[]>([])
-    const [qrToken, setQrToken] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [selectedTableIds, setSelectedTableIds] = useState<string[]>(['all'])
     const [displayCount, setDisplayCount] = useState<number>(4)
@@ -143,17 +142,8 @@ export default function ScreenPage() {
 
     const fetchData = async () => {
         try {
-            const token = localStorage.getItem('cueclub_admin_token')
-            const [gameRes, qrRes] = await Promise.all([
-                fetch('/api/game-status'),
-                fetch('/api/daily-qr')
-            ])
-
+            const gameRes = await fetch('/api/game-status')
             if (gameRes.ok) setTables(await gameRes.json())
-            if (qrRes.ok) {
-                const qrData = await qrRes.json()
-                setQrToken(qrData.token)
-            }
         } catch (err) {
             console.error("Failed to fetch screen data", err)
         } finally {
@@ -292,52 +282,9 @@ export default function ScreenPage() {
                 </div>
             </div>
 
-            <div className="flex-1 flex gap-8 min-h-0">
-                {/* Left Section: QR Code */}
-                <div className={cn("w-[38%] flex flex-col items-center justify-center border rounded-[4rem] p-16 relative overflow-hidden", isDark ? 'bg-white/[0.02] border-white/5' : 'bg-[#EFECE5]/60 border-[#D5D0C8]')}>
-                    <div className="absolute inset-0 bg-primary/10 blur-[150px] rounded-full -translate-x-1/2 -translate-y-1/2 opacity-40" />
-
-                    <div className="relative z-10 text-center space-y-12 w-full">
-                        <div className="relative p-12 inline-block mx-auto group">
-                            {/* Camera Scan Corners */}
-                            <div className={cn("absolute top-0 left-0 w-24 h-24 border-t-[12px] border-l-[12px] rounded-tl-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
-                            <div className={cn("absolute top-0 right-0 w-24 h-24 border-t-[12px] border-r-[12px] rounded-tr-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
-                            <div className={cn("absolute bottom-0 left-0 w-24 h-24 border-b-[12px] border-l-[12px] rounded-bl-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
-                            <div className={cn("absolute bottom-0 right-0 w-24 h-24 border-b-[12px] border-r-[12px] rounded-br-[3rem] transition-all duration-500 group-hover:scale-110", isDark ? 'border-white' : 'border-[#1A1A1A]')} />
-
-                            {/* Scanning Line Animation */}
-                            <div className="absolute inset-x-12 top-12 h-1 bg-gradient-to-r from-transparent via-primary to-transparent animate-[scan_3s_ease-in-out_infinite] z-20 shadow-[0_0_15px_rgba(234,88,12,0.8)]" />
-
-                            <div className="bg-white p-4 rounded-[3rem] shadow-[0_0_150px_rgba(255,255,255,0.15)] relative z-10">
-                                {qrToken ? (
-                                    <img
-                                        src={`/uploads/qrcodes/daily_qr_${new Date().toISOString().split('T')[0]}.png`}
-                                        alt="Daily QR"
-                                        className="w-[500px] h-[500px] rounded-2xl object-contain"
-                                    />
-                                ) : (
-                                    <div className="w-[500px] h-[500px] flex items-center justify-center bg-neutral-100 rounded-2xl">
-                                        <Loader2 className="animate-spin text-neutral-300" size={80} />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <h2 className="text-6xl font-black uppercase tracking-tight">{t('screen.scanToJoin', 'Scan to Join')}</h2>
-
-                            <div className="flex justify-center gap-8 pt-8">
-                                <div className={cn("flex items-center gap-4 px-8 py-4 rounded-full border", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
-                                    <QrCode size={32} className="text-primary" />
-                                    <span className="text-lg font-bold uppercase tracking-widest">Instant Sync</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Section: Line Infos */}
-                <div className="flex-1 flex flex-col min-h-0 ml-10">
+            <div className="flex-1 flex flex-col min-h-0">
+                {/* Live Queue Section - Full Width */}
+                <div className="flex-1 flex flex-col min-h-0">
                     <div className="flex items-center justify-between mb-10 px-6">
                         <h3 className="text-4xl font-black uppercase tracking-widest flex items-center gap-6">
                             <Gamepad2 size={48} className="text-primary" />
@@ -559,11 +506,6 @@ export default function ScreenPage() {
                 .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
                     background: rgba(255, 255, 255, 0.05);
                     border-radius: 10px;
-                }
-                @keyframes scan {
-                    0%, 100% { transform: translateY(0); opacity: 0; }
-                    10%, 90% { opacity: 1; }
-                    50% { transform: translateY(500px); }
                 }
             `}</style>
         </div>

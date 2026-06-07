@@ -276,11 +276,7 @@ export default function MenuPage() {
 
     return (
         <div className={cn("min-h-screen text-foreground selection:bg-primary/30 pb-32", isDark ? 'dark bg-[#0A0A0A]' : 'light-mode bg-[#F7F5F0]')}>
-            {/* Background Effects */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/5 blur-[120px] rounded-full" />
-            </div>
+
 
             {/* Sticky Header */}
             <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b px-4 py-4", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
@@ -326,7 +322,7 @@ export default function MenuPage() {
                 {/* Guest Call to Action */}
                 {/* Guest Mode Section / Welcome */}
                 {!userId ? (
-                    <section className={cn("p-8 rounded-[2.5rem] relative overflow-hidden group border", isDark ? "bg-white/[0.03] border-white/5" : "bg-white border-[#D5D0C8]")}>
+                    <section className={cn("p-8 rounded-md relative overflow-hidden group border", isDark ? "bg-white/[0.03] border-white/5" : "bg-white border-[#D5D0C8]")}>
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                             <Users size={80} className={isDark ? "text-white" : "text-black"} />
                         </div>
@@ -345,7 +341,7 @@ export default function MenuPage() {
                                     placeholder="Enter Your Full Name"
                                     value={guestNameInput}
                                     onChange={(e) => setGuestNameInput(e.target.value)}
-                                    className={cn("flex-1 border rounded-2xl px-6 h-14 text-sm font-bold focus:outline-none focus:border-primary/50 transition-all", isDark ? "bg-white/5 border-white/10 text-white placeholder:text-white/20" : "bg-[#E8E4DC] border-transparent text-[#1A1A1A] placeholder:text-[#8A857E]")}
+                                    className={cn("flex-1 border rounded-md px-6 h-14 text-sm font-bold focus:outline-none focus:border-primary/50 transition-all", isDark ? "bg-white/5 border-white/10 text-white placeholder:text-white/20" : "bg-[#E8E4DC] border-transparent text-[#1A1A1A] placeholder:text-[#8A857E]")}
                                 />
                                 <Button 
                                     onClick={async () => {
@@ -370,7 +366,7 @@ export default function MenuPage() {
                                             alert("Login failed")
                                         }
                                     }}
-                                    className="bg-primary text-black font-black uppercase tracking-widest text-xs h-14 px-8 rounded-2xl hover:scale-105 transition-transform"
+                                    className="bg-primary text-black font-black uppercase tracking-widest text-xs h-14 px-8 rounded-md transition-colors"
                                 >
                                     Continue
                                 </Button>
@@ -391,7 +387,7 @@ export default function MenuPage() {
                         </div>
                     </section>
                 ) : (
-                    <section className="bg-primary/5 border border-primary/20 p-6 rounded-[2rem] flex items-center justify-between">
+                    <section className="bg-primary/5 border border-primary/20 p-6 rounded-md flex items-center justify-between">
                         <div>
                             <p className="text-[10px] text-primary font-black uppercase tracking-widest">Welcome back,</p>
                             <h2 className={cn("text-xl font-black uppercase italic", isDark ? "text-white" : "text-[#1A1A1A]")}>{typeof window !== 'undefined' ? localStorage.getItem('cueclub_user_name') : ''}</h2>
@@ -427,7 +423,7 @@ export default function MenuPage() {
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    className={cn("overflow-hidden rounded-[2rem] p-6 border", isDark ? "bg-white/5 border-white/5" : "bg-[#EFECE5] border-[#D5D0C8]")}
+                                    className={cn("overflow-hidden rounded-md p-6 border", isDark ? "bg-white/5 border-white/5" : "bg-[#EFECE5] border-[#D5D0C8]")}
                                 >
                                     <div className="grid grid-cols-5 gap-3">
                                         {Array.from({ length: 25 }, (_, i) => i + 1).map(num => {
@@ -440,8 +436,8 @@ export default function MenuPage() {
                                                     key={num}
                                                     disabled={isTaken}
                                                     onClick={() => handleOccupyTable(num)}
-                                                    className={cn(
-                                                        "h-12 rounded-xl flex items-center justify-center text-xs font-black transition-all border",
+                                                className={cn(
+                                                    "h-12 rounded-md flex items-center justify-center text-xs font-black transition-all border",
                                                         isMe ? "bg-primary border-primary text-black" :
                                                         isTaken ? "bg-red-500/10 border-red-500/20 text-red-500/50 cursor-not-allowed" :
                                                         selectedCafeTable === num 
@@ -469,9 +465,9 @@ export default function MenuPage() {
                         </h2>
                         <div className="space-y-2">
                             {pendingOrders.map(order => (
-                                <div key={order.id} className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between">
+                                <div key={order.id} className="bg-primary/5 border border-primary/20 rounded-md p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+                                        <div className="w-10 h-10 bg-primary/20 rounded-md flex items-center justify-center text-primary">
                                             <Coffee size={20} />
                                         </div>
                                         <div>
@@ -482,7 +478,7 @@ export default function MenuPage() {
                                     <Button 
                                         variant="ghost" 
                                         onClick={() => handleCancelOrder(order.id)}
-                                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
+                                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
                                     >
                                         <XCircle size={18} />
                                     </Button>
@@ -527,10 +523,10 @@ export default function MenuPage() {
                                     transition={{ delay: idx * 0.05 }}
                                     className="group"
                                 >
-                                    <div className={cn("border rounded-3xl p-4 flex items-center gap-6 transition-all duration-300 hover:border-primary/20 relative overflow-hidden", isDark ? 'bg-white/[0.03] border-white/5 hover:bg-white/[0.08]' : 'bg-[#EFECE5]/80 border-[#D5D0C8] hover:bg-[#E8E4DC]')}>
+                                    <div className={cn("border rounded-md p-4 flex items-center gap-6 transition-colors duration-200 hover:border-primary/20 relative overflow-hidden", isDark ? 'bg-white/[0.03] border-white/5 hover:bg-white/[0.08]' : 'bg-[#EFECE5]/80 border-[#D5D0C8] hover:bg-[#E8E4DC]')}>
                                         {/* Minimalist Icon/Image Placeholder */}
                                         <div className={cn(
-                                            "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-500",
+                                            "w-14 h-14 rounded-md bg-gradient-to-br flex items-center justify-center shrink-0",
                                             itemColor
                                         )}>
                                             <Icon size={24} className="text-white drop-shadow-md" />
@@ -556,7 +552,7 @@ export default function MenuPage() {
                                                 <span className={cn("font-black text-base", isDark ? "text-white" : "text-[#1A1A1A]")}>{item.price} <span className="text-[10px] opacity-40">DH</span></span>
                                                 
                                                 {userId ? (
-                                                    <div className={cn("flex items-center gap-1 rounded-xl p-1 border", isDark ? "bg-black/40 border-white/5" : "bg-[#E8E4DC] border-[#D5D0C8]")}>
+                                                    <div className={cn("flex items-center gap-1 rounded-md p-1 border", isDark ? "bg-black/40 border-white/5" : "bg-[#E8E4DC] border-[#D5D0C8]")}>
                                                         {qty > 0 && (
                                                             <>
                                                                 <button 
@@ -575,16 +571,16 @@ export default function MenuPage() {
                                                                 qty > 0 
                                                                     ? (isDark ? "w-8 hover:bg-white/10 text-white" : "w-8 hover:bg-black/5 text-[#1A1A1A]") 
                                                                     : "bg-primary text-black font-black uppercase tracking-widest text-[9px]"
-                                                            )}
-                                                        >
-                                                            {qty > 0 ? <Plus size={14} /> : t('menu.add', 'Add')}
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div className={cn("px-3 py-1.5 rounded-xl border", isDark ? "bg-white/5 border-white/5" : "bg-[#E8E4DC]/50 border-[#D5D0C8]")}>
-                                                        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{t('menu.signInToOrder', 'Sign in to order')}</p>
-                                                    </div>
-                                                )}
+                                                                )}
+                                                            >
+                                                                {qty > 0 ? <Plus size={14} /> : t('menu.add', 'Add')}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className={cn("px-3 py-1.5 rounded-md border", isDark ? "bg-white/5 border-white/5" : "bg-[#E8E4DC]/50 border-[#D5D0C8]")}>
+                                                            <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{t('menu.signInToOrder', 'Sign in to order')}</p>
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                     </div>
@@ -604,7 +600,7 @@ export default function MenuPage() {
                         exit={{ y: 100, opacity: 0 }}
                         className="fixed bottom-6 left-4 right-4 z-[100] max-w-4xl mx-auto"
                     >
-                        <div className="bg-primary shadow-[0_20px_50px_-10px_rgba(234,88,12,0.5)] rounded-[2.5rem] p-4 flex items-center justify-between border-t border-white/20">
+                        <div className="bg-primary rounded-md p-4 flex items-center justify-between border-t border-white/20">
                             <div className="pl-4">
                                 <p className="text-black/60 text-[9px] font-black uppercase tracking-widest">{t('menu.total', 'Total Bill')}</p>
                                 <p className="text-black text-xl font-black">{totalPrice} <span className="text-xs">DH</span></p>
@@ -612,7 +608,7 @@ export default function MenuPage() {
                             <Button 
                                 onClick={handlePlaceOrder}
                                 disabled={ordering}
-                                className="bg-black text-white hover:bg-neutral-900 h-14 px-8 rounded-[2rem] font-bold uppercase tracking-[0.2em] text-[10px] group flex items-center gap-4"
+                                className="bg-black text-white hover:bg-neutral-900 h-14 px-8 rounded-md font-bold uppercase tracking-[0.2em] text-[10px] group flex items-center gap-4"
                             >
                                 {ordering ? (
                                     <Loader2 className="animate-spin" size={18} />
@@ -644,8 +640,8 @@ export default function MenuPage() {
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className={cn("fixed top-0 right-0 bottom-0 w-[90%] md:w-[400px] border-l z-[120] p-8 shadow-2xl overflow-y-auto", isDark ? 'bg-[#0A0A0A] border-white/5' : 'bg-[#F7F5F0] border-[#D5D0C8]')}
+                            transition={{ duration: 0.2 }}
+                            className={cn("fixed top-0 right-0 bottom-0 w-[90%] md:w-[400px] border-l z-[120] p-8 overflow-y-auto", isDark ? 'bg-[#0A0A0A] border-white/5' : 'bg-[#F7F5F0] border-[#D5D0C8]')}
                         >
                             <div className="flex items-center justify-between mb-10">
                                 <div>
@@ -673,7 +669,7 @@ export default function MenuPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    <div className={cn("rounded-3xl p-6 border", isDark ? "bg-white/5 border-white/5" : "bg-[#EFECE5] border-[#D5D0C8]")}>
+                                    <div className={cn("rounded-md p-6 border", isDark ? "bg-white/5 border-white/5" : "bg-[#EFECE5] border-[#D5D0C8]")}>
                                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total Session Spend</p>
                                         <p className="text-3xl font-black text-primary">
                                             {userOrders.reduce((sum, o) => sum + (o.status !== 'cancelled' ? o.price : 0), 0)} <span className="text-sm">DH</span>
@@ -690,7 +686,7 @@ export default function MenuPage() {
                                                     order.status === 'pending' ? "bg-primary animate-pulse" :
                                                     order.status === 'served' ? "bg-emerald-500" : "bg-red-500"
                                                 )} />
-                                                <div className={cn("border rounded-2xl p-4 space-y-2", isDark ? "bg-white/[0.02] border-white/5" : "bg-white border-[#D5D0C8]")}>
+                                                <div className={cn("border rounded-md p-4 space-y-2", isDark ? "bg-white/[0.02] border-white/5" : "bg-white border-[#D5D0C8]")}>
                                                     <div className="flex justify-between items-start">
                                                         <p className={cn("text-sm font-bold tracking-tight", isDark ? "text-white" : "text-[#1A1A1A]")}>{order.name}</p>
                                                         <div className="text-right">

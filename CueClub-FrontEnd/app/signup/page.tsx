@@ -225,23 +225,14 @@ export default function SignupPage() {
 
     return (
         <div className="dark min-h-screen bg-background flex flex-col selection:bg-primary/30 h-screen overflow-hidden">
-            {/* Ambient Background Elements */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse-slow" />
-                <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-secondary/10 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '1s' }} />
-                <div className="absolute -bottom-[10%] left-[20%] w-[35%] h-[35%] bg-primary/5 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '2s' }} />
-            </div>
+
 
             {/* Header / Logo */}
             <header className="p-4 relative z-10 shrink-0">
                 <Link href="/" className="flex items-center gap-4 w-fit group">
                     <div className="relative w-16 h-16 flex items-center justify-center">
-                        {/* Intensity Lamp / Glow Effect */}
-                        <div className="absolute inset-0 bg-white/60 blur-2xl rounded-full scale-110 opacity-70" />
-                        <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.9)_0%,_transparent_80%)] rounded-full animate-pulse-slow" />
-
-                        <div className="relative w-14 h-14 bg-gradient-to-br from-[#EA580C] to-[#F59E0B] rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-6 transition-transform duration-500 shadow-2xl shadow-primary/30 overflow-hidden border border-white/20">
-                            <span className="text-white font-black text-3xl drop-shadow-lg">C</span>
+                        <div className="relative w-14 h-14 bg-primary rounded-md flex items-center justify-center">
+                            <span className="text-white font-black text-3xl">C</span>
                         </div>
                     </div>
                     <div>
@@ -271,7 +262,7 @@ export default function SignupPage() {
                         </div>
                     )}
 
-                    <Card className="border-white/10 shadow-2xl bg-[#09090b]/80 backdrop-blur-xl overflow-hidden rounded-3xl border flex flex-col min-h-0">
+                    <Card className="border-white/10 bg-[#09090b] overflow-hidden rounded-md border flex flex-col min-h-0">
                         {step === 1 && (
                             <div className="animate-in fade-in slide-in-from-bottom-5 duration-700 flex flex-col min-h-0 overflow-y-auto md:overflow-hidden">
                                 <CardHeader className="text-center py-3 shrink-0">
@@ -416,7 +407,7 @@ export default function SignupPage() {
                                     )}
                                 </CardContent>
                                 <CardFooter className="px-6 pb-5 pt-1 shrink-0">
-                                    <Button onClick={handleNext} className="w-full h-11 text-sm font-bold rounded-xl group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/20" disabled={isSubmitting}>
+                                    <Button onClick={handleNext} className="w-full h-11 text-sm font-bold rounded-md group relative overflow-hidden bg-primary hover:bg-primary/90 transition-colors duration-200" disabled={isSubmitting}>
                                         {isSubmitting ? (
                                             <span className="flex items-center gap-2 justify-center w-full">
                                                 <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -437,8 +428,7 @@ export default function SignupPage() {
                             <div className="animate-in zoom-in-95 duration-1000 flex flex-col min-h-0">
                                 <CardContent className="pt-8 pb-8 px-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
                                     <div className="relative">
-                                        <div className="w-24 h-24 bg-primary/20 rounded-full absolute inset-0 blur-2xl animate-pulse" />
-                                        <div className="w-24 h-24 rounded-full border-2 border-primary bg-card/50 overflow-hidden relative shadow-2xl">
+                                        <div className="w-24 h-24 rounded-full border-2 border-primary bg-card/50 overflow-hidden relative">
                                             {profileImage ? (
                                                 <img src={profileImage} alt="Welcome" className="w-full h-full object-cover" />
                                             ) : (
@@ -447,7 +437,7 @@ export default function SignupPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground p-2 rounded-xl shadow-xl shadow-primary/30">
+                                        <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground p-2 rounded-md">
                                             <Sparkles size={16} />
                                         </div>
                                     </div>
@@ -459,7 +449,7 @@ export default function SignupPage() {
                                             Your legacy begins today.
                                         </CardDescription>
                                     </div>
-                                    <Button onClick={() => router.push('/home')} className="w-full h-12 text-sm font-bold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all duration-300" size="lg">
+                                    <Button onClick={() => router.push('/home')} className="w-full h-12 text-sm font-bold rounded-md bg-white text-black hover:bg-neutral-200 transition-colors duration-200" size="lg">
                                         Enter Club House
                                     </Button>
                                 </CardContent>
@@ -482,22 +472,7 @@ export default function SignupPage() {
                 © 2026 Cue-Club Game • Professional Cue Sports Foundation
             </footer>
 
-            <style jsx global>{`
-                @keyframes bounce-slow {
-                    0%, 100% { transform: translateY(0) rotate(0deg); }
-                    50% { transform: translateY(-15px) rotate(2deg); }
-                }
-                .animate-bounce-slow {
-                    animation: bounce-slow 4s infinite ease-in-out;
-                }
-                @keyframes pulse-slow {
-                    0%, 100% { opacity: 0.3; transform: scale(1); }
-                    50% { opacity: 0.6; transform: scale(1.1); }
-                }
-                .animate-pulse-slow {
-                    animation: pulse-slow 6s infinite ease-in-out;
-                }
-            `}</style>
+
         </div>
     )
 }

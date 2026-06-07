@@ -57,13 +57,13 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-black/80" />
       </motion.div>
 
-      {/* Floating Glassmorphism Panel */}
+      {/* Flat Panel Card Container */}
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center pt-20 md:pt-24 h-full justify-center">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="glass-panel p-6 md:p-10 rounded-[40px] max-w-4xl w-full text-center flex flex-col items-center gap-4 md:gap-6 border-white/5"
+          className="bg-card/90 border border-border p-6 md:p-10 rounded-md max-w-4xl w-full text-center flex flex-col items-center gap-4 md:gap-6"
         >
           <motion.div
             key="content"
@@ -82,44 +82,30 @@ export default function Hero() {
                 {t('landing.heroPretitle', 'Excellence in Precision')}
               </motion.span>
 
-              <h1 className="text-3xl md:text-5xl lg:text-7xl font-black leading-[1.1] tracking-tighter text-white uppercase">
+              <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white uppercase">
                 {t('landing.heroTitleLine1', 'MASTER THE ART OF')}<br />
-                <span className="text-gradient">{t('landing.heroTitleLine2', 'PRECISION')}</span>
+                <span className="text-primary">{t('landing.heroTitleLine2', 'PRECISION')}</span>
               </h1>
             </div>
 
-            <p className="text-xs md:text-base text-[#A3A3A3] max-w-lg leading-relaxed">
+            <p className="text-xs md:text-base text-muted-foreground max-w-lg leading-relaxed">
               {t('landing.heroSubtitle', 'Where luxury meets competitive play. Join our world-class facilities for billiards, pool, carrom, and darts.')}
             </p>
 
-            <div className="flex flex-col items-center gap-6 md:gap-8 mt-2 w-full">
-              <Magnetic>
-                <Button
-                  size="lg"
-                  onClick={handleStartPlaying}
-                  className="group relative h-24 w-40 md:h-32 md:w-56 bg-gradient-to-br from-[#EA580C] to-[#F59E0B] text-white border-0 rounded-2xl transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(234,88,12,0.3)] flex flex-col items-center justify-center p-0 overflow-hidden"
-                >
-                  <div className="absolute inset-0 z-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                  <div className="absolute top-0 -left-[100%] w-[100%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-25deg] group-hover:animate-shine-once" />
-
-                  <motion.span
-                    key="playing"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 flex flex-col items-center py-4 md:py-6"
-                  >
-                    <span className="text-[10px] md:text-xs font-black tracking-[0.3em] uppercase text-white/60 mb-1">{t('landing.start', 'Start')}</span>
-                    <span className="text-xl md:text-3xl font-black tracking-widest uppercase leading-none">{t('landing.playing', 'PLAYING')}</span>
-                    <span className="text-[10px] md:text-xs font-black tracking-[0.3em] uppercase text-white/60 mt-1">{t('landing.now', 'Now')}</span>
-                  </motion.span>
-                </Button>
-              </Magnetic>
+            <div className="flex flex-col items-center gap-6 mt-2 w-full">
+              <Button
+                size="lg"
+                onClick={handleStartPlaying}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 rounded-md font-bold tracking-widest uppercase px-8 h-12 shadow-sm transition-colors text-xs"
+              >
+                {t('landing.start', 'Start')} {t('landing.playing', 'PLAYING')} {t('landing.now', 'Now')}
+              </Button>
 
               <Link href="#tour">
-                <button className="text-[#A3A3A3] hover:text-white flex items-center gap-2 font-bold tracking-widest text-[10px] uppercase transition-colors group">
+                <button className="text-muted-foreground hover:text-white flex items-center gap-2 font-bold tracking-widest text-[10px] uppercase transition-colors group">
                   <Play size={10} className="fill-current" />
                   {t('landing.virtualTour', 'Experience the Virtual Tour')}
-                  <span className="h-[1px] w-0 bg-primary group-hover:w-6 transition-all duration-500 ml-2" />
+                  <span className="h-[1px] w-0 bg-primary group-hover:w-6 transition-all duration-200 ml-2" />
                 </button>
               </Link>
             </div>

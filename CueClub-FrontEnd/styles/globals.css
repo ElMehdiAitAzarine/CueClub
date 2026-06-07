@@ -23,7 +23,7 @@
   --border: rgba(255, 255, 255, 0.1);
   --input: #171717;
   --ring: #EA580C;
-  --radius: 1.5rem;
+  --radius: 0.5rem;
 }
 
 .dark {
@@ -93,9 +93,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
   --color-surface: var(--card);
 }
@@ -111,20 +111,10 @@
 }
 
 @layer utilities {
-  @keyframes shine {
-    from {
-      left: -100%;
-    }
-
-    to {
-      left: 100%;
-    }
-  }
-
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(10px);
     }
 
     to {
@@ -136,7 +126,7 @@
   @keyframes slideInRight {
     from {
       opacity: 0;
-      transform: translateX(50px);
+      transform: translateX(20px);
     }
 
     to {
@@ -145,79 +135,11 @@
     }
   }
 
-  @keyframes float {
-
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  @keyframes pulse-slow {
-
-    0%,
-    100% {
-      opacity: 0.5;
-      transform: scale(1);
-    }
-
-    50% {
-      opacity: 0.8;
-      transform: scale(1.1);
-    }
-  }
-
   .animate-fadeInUp {
-    animation: fadeInUp 0.8s ease-out forwards;
+    animation: fadeInUp 0.4s ease-out forwards;
   }
 
   .animate-slideInRight {
-    animation: slideInRight 0.8s ease-out forwards;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-pulse-slow {
-    animation: pulse-slow 4s ease-in-out infinite;
-  }
-
-  .animate-shine {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .animate-shine::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(to right,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent);
-    transform: skewX(-25deg);
-    animation: shine 2.5s infinite;
-  }
-
-  @keyframes shine-once {
-    0% {
-      left: -100%;
-    }
-
-    100% {
-      left: 100%;
-    }
-  }
-
-  .animate-shine-once {
-    animation: shine-once 0.8s ease-in-out forwards;
+    animation: slideInRight 0.4s ease-out forwards;
   }
 }

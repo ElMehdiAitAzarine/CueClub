@@ -86,16 +86,12 @@ export default function LoginPage() {
 
     return (
         <div className={cn("min-h-screen flex flex-col selection:bg-primary/30 h-screen overflow-hidden", isDark ? 'dark bg-background text-white' : 'light-mode bg-[#F7F5F0] text-[#1A1A1A]')}>
-            {/* Ambient Background Elements */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse-slow" />
-                <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-secondary/10 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '1s' }} />
-            </div>
+
 
             {/* Header / Logo & Theme Toggle */}
             <header className="p-6 relative z-10 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#EA580C] to-[#F59E0B] rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-3 group-hover:rotate-12 transition-transform duration-500">
+                    <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
                         <span className="text-white font-black text-xl">C</span>
                     </div>
                     <div>
@@ -113,10 +109,10 @@ export default function LoginPage() {
                         <p className="text-sm text-muted-foreground">The club house awaits your return.</p>
                     </div>
 
-                    <Card className={cn("shadow-2xl backdrop-blur-xl overflow-hidden rounded-3xl border", isDark ? 'border-white/10 bg-[#09090b]/80' : 'border-[#D5D0C8] bg-white/70')}>
+                    <Card className={cn("overflow-hidden rounded-md border", isDark ? 'border-white/10 bg-[#09090b]' : 'border-[#D5D0C8] bg-white')}>
                         <form onSubmit={handleLogin}>
                             <CardHeader className="text-center pb-2">
-                                <div className="mx-auto bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mb-4 relative">
+                                <div className="mx-auto bg-primary/10 w-20 h-20 rounded-md flex items-center justify-center mb-4 relative">
                                     <UserCircle className="text-primary" size={40} />
                                     <div className="absolute -top-1 -right-1">
                                         <Sparkles className="text-primary animate-pulse" size={16} />
@@ -141,7 +137,7 @@ export default function LoginPage() {
                                             placeholder="Phone, email or name"
                                             value={formData.phone}
                                             onChange={handleInputChange}
-                                            className={cn("h-12 pl-11 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
+                                            className={cn("h-12 pl-11 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-md border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                             required
                                         />
                                     </div>
@@ -159,14 +155,14 @@ export default function LoginPage() {
                                             placeholder="••••••••"
                                             value={formData.password}
                                             onChange={handleInputChange}
-                                            className={cn("h-12 pl-11 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
+                                            className={cn("h-12 pl-11 focus:border-primary/50 focus:ring-primary/20 transition-all rounded-md border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                             required
                                         />
                                     </div>
                                 </div>
                             </CardContent>
                             <CardFooter className="px-8 pb-8 pt-4 flex flex-col gap-4">
-                                <Button type="submit" disabled={loading} className="w-full h-14 text-lg font-bold rounded-2xl group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300">
+                                <Button type="submit" disabled={loading} className="w-full h-14 text-lg font-bold rounded-md group relative overflow-hidden bg-primary hover:bg-primary/90 transition-colors duration-200">
                                     <span className="relative z-10 flex items-center">
                                         {loading ? <Loader2 className="animate-spin mr-2" /> : "Authorize Access"}
                                         {!loading && <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />}
@@ -194,15 +190,7 @@ export default function LoginPage() {
                 © 2026 Cue-Club Game • Secure Terminal
             </footer>
 
-            <style jsx global>{`
-                @keyframes pulse-slow {
-                    0%, 100% { opacity: 0.3; transform: scale(1); }
-                    50% { opacity: 0.6; transform: scale(1.1); }
-                }
-                .animate-pulse-slow {
-                    animation: pulse-slow 6s infinite ease-in-out;
-                }
-            `}</style>
+
         </div>
     )
 }

@@ -43,8 +43,6 @@ export default function FeaturesSection() {
 
   return (
     <section id="features" className="py-32 bg-[#0A0A0A] relative overflow-hidden">
-      {/* Background Accent */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Section Header */}
@@ -76,11 +74,11 @@ export default function FeaturesSection() {
                   ease: [0.16, 1, 0.3, 1]
                 }}
                 viewport={{ once: true }}
-                className="group p-6 md:p-10 rounded-[32px] bg-[#171717] border border-white/5 hover:border-primary/50 transition-all duration-700 hover:-translate-y-2"
+                className="group p-6 md:p-10 rounded-md bg-[#171717] border border-white/5 hover:border-primary/50 transition-colors duration-200"
               >
                 {/* Icon Container */}
-                <div className="mb-6 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#EA580C] to-[#F59E0B] flex items-center justify-center rotate-3 group-hover:rotate-12 transition-transform duration-500 shadow-xl shadow-primary/20">
-                  <Icon className="h-7 w-7 text-white" />
+                <div className="mb-6 h-14 w-14 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Icon className="h-7 w-7 text-primary" />
                 </div>
 
                 {/* Content */}

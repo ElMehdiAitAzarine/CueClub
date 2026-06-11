@@ -211,29 +211,29 @@ export default function ScreenPage() {
 
     if (loading) {
         return (
-            <div className={cn("min-h-screen flex items-center justify-center", isDark ? 'dark bg-background' : 'light-mode bg-background')}>
-                <Loader2 className="animate-spin text-primary" size={40} />
+            <div className={cn("min-h-screen flex items-center justify-center", isDark ? 'dark bg-black' : 'light-mode bg-[#F0EDE6]')}>
+                <Loader2 className="animate-spin text-primary" size={64} />
             </div>
         )
     }
 
     if (!isLoggedIn) {
         return (
-            <div className={cn("min-h-screen flex items-center justify-center p-4", isDark ? 'dark bg-background text-foreground' : 'light-mode bg-background text-foreground')}>
-                <Card className="w-full max-w-md p-6 rounded-md border border-border bg-card shadow-sm">
-                    <div className="text-center mb-6">
-                        <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center text-primary mx-auto mb-4 border border-primary/20">
-                            <Gamepad2 size={24} />
+            <div className={cn("min-h-screen flex items-center justify-center p-4", isDark ? 'dark bg-black' : 'light-mode bg-[#F0EDE6]')}>
+                <Card className={cn("w-full max-w-md backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-2xl", isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white/70 border-[#D5D0C8]')}>
+                    <div className="text-center mb-8">
+                        <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary mx-auto mb-6">
+                            <Gamepad2 size={40} />
                         </div>
-                        <h2 className="text-2xl font-bold tracking-tight">Terminal Access</h2>
-                        <p className="text-xs text-muted-foreground mt-1">Establish Connection to Mainframe</p>
+                        <h2 className={cn("text-3xl font-black uppercase tracking-tighter italic", isDark ? 'text-white' : 'text-[#1A1A1A]')}>Terminal Access</h2>
+                        <p className="text-muted-foreground font-black uppercase tracking-widest text-[10px] mt-2 italic opacity-60">Establish Connection to Mainframe</p>
                     </div>
                     <form onSubmit={handleLogin} className="space-y-4">
                         <input
                             placeholder="Admin Node Identifier"
                             value={loginForm.username}
                             onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                            className="w-full h-10 rounded-md px-3 font-normal border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm text-foreground placeholder:text-muted-foreground"
+                            className={cn("w-full h-14 rounded-2xl px-6 font-black uppercase tracking-widest text-xs focus:border-primary/50 transition-all outline-none", isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-[#EFECE5] border-[#D5D0C8] text-[#1A1A1A] placeholder:text-[#B0AAA0]')}
                             required
                         />
                         <input
@@ -241,15 +241,15 @@ export default function ScreenPage() {
                             placeholder="Access Authorization Key"
                             value={loginForm.password}
                             onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                            className="w-full h-10 rounded-md px-3 font-normal border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm text-foreground placeholder:text-muted-foreground"
+                            className={cn("w-full h-14 rounded-2xl px-6 font-black uppercase tracking-widest text-xs focus:border-primary/50 transition-all outline-none", isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-[#EFECE5] border-[#D5D0C8] text-[#1A1A1A] placeholder:text-[#B0AAA0]')}
                             required
                         />
                         <Button
                             type="submit"
                             disabled={isLoggingIn}
-                            className="w-full h-10 bg-primary text-primary-foreground font-medium rounded-md shadow-sm hover:bg-primary/90 transition-colors text-sm"
+                            className="w-full h-14 bg-primary text-black font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform"
                         >
-                            {isLoggingIn ? <Loader2 className="animate-spin" size={16} /> : 'Initialize Feed'}
+                            {isLoggingIn ? <Loader2 className="animate-spin" /> : 'Initialize Feed'}
                         </Button>
                     </form>
                 </Card>
@@ -258,45 +258,43 @@ export default function ScreenPage() {
     }
 
     return (
-        <div className={cn("min-h-screen p-6 flex flex-col h-screen", isDark ? 'dark bg-background text-foreground' : 'light-mode bg-background text-foreground')}>
+        <div className={cn("min-h-screen p-12 overflow-hidden flex flex-col h-screen", isDark ? 'dark bg-[#050505] text-white' : 'light-mode bg-[#F7F5F0] text-[#1A1A1A]')}>
             {/* Header */}
-            <div className="flex justify-between items-center mb-8 shrink-0 pb-6 border-b border-border">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-white shrink-0">
-                        <span className="font-bold text-xl">C</span>
+            <div className="flex justify-between items-end mb-16 shrink-0">
+                <div className="flex items-center gap-10">
+                    <div className="w-24 h-24 bg-gradient-to-br from-primary to-orange-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary/30">
+                        <span className="text-white font-black text-6xl">C</span>
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Cue Club</h1>
-                        <p className="text-primary font-medium tracking-wider text-xs uppercase">Live Tournament Dashboard</p>
+                        <h1 className="text-7xl font-black uppercase tracking-tighter leading-none mb-2">Cue Club</h1>
+                        <p className="text-primary font-bold tracking-[0.5em] text-xl uppercase">Live Tournament Dashboard</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-6">
-                    <div className="text-right">
-                        <p className="text-2xl font-mono font-bold tabular-nums leading-none">
-                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Local Clubhouse Time</p>
-                    </div>
-                    <div className="flex items-center gap-2">
+                <div className="text-right">
+                    <div className="flex items-center gap-4 mb-4 justify-end">
                         <LanguageToggle />
-                        <ThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
+                        <ThemeToggle theme={theme} onToggle={toggleTheme} size="md" />
                     </div>
+                    <p className="text-7xl font-mono font-black tabular-nums leading-none mb-2">
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-xl text-muted-foreground uppercase font-black tracking-[0.4em]">Local Clubhouse Time</p>
                 </div>
             </div>
 
             <div className="flex-1 flex flex-col min-h-0">
                 {/* Live Queue Section - Full Width */}
                 <div className="flex-1 flex flex-col min-h-0">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold tracking-tight flex items-center gap-2">
-                            <Gamepad2 size={20} className="text-primary" />
+                    <div className="flex items-center justify-between mb-10 px-6">
+                        <h3 className="text-4xl font-black uppercase tracking-widest flex items-center gap-6">
+                            <Gamepad2 size={48} className="text-primary" />
                             Live Queue Status
                         </h3>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-10">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="h-8 rounded-md text-xs font-medium border border-border bg-card text-foreground px-3 hover:bg-muted transition-colors flex items-center gap-2 shadow-sm">
-                                        <Filter size={14} className="text-primary" />
+                                    <Button variant="outline" className={cn("h-14 rounded-2xl text-xl font-bold uppercase tracking-wider focus:ring-primary/50 flex items-center gap-4 px-8 border-none shadow-2xl", isDark ? 'bg-white/5' : 'bg-[#E8E4DC] text-[#1A1A1A]')}>
+                                        <Filter size={24} className="text-primary" />
                                         <span>
                                             {selectedTableIds.includes('all')
                                                 ? `Grid View: ${displayCount} Tables`
@@ -305,21 +303,22 @@ export default function ScreenPage() {
                                         </span>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-64 rounded-md border border-border bg-popover p-2 text-popover-foreground shadow-md">
-                                    <div className="space-y-4">
+                                <DropdownMenuContent align="end" className={cn("w-[320px] rounded-[2rem] p-4", isDark ? 'bg-[#0A0A0A] border-white/10 text-white shadow-[0_0_50px_rgba(0,0,0,0.5)]' : 'bg-[#EFECE5] border-[#D5D0C8] text-[#1A1A1A] shadow-xl')}>
+                                    <div className="space-y-6">
+
                                         <div>
-                                            <DropdownMenuLabel className="text-primary font-bold uppercase text-[10px] tracking-wider px-2 mb-1 flex items-center gap-2">
-                                                <Users size={12} />
+                                            <DropdownMenuLabel className="text-primary font-black uppercase text-sm tracking-[0.2em] px-2 mb-2 flex items-center gap-3">
+                                                <Users size={16} />
                                                 Filter Tables
                                             </DropdownMenuLabel>
-                                            <div className="space-y-0.5">
+                                            <div className="space-y-1">
                                                 <DropdownMenuCheckboxItem
                                                     checked={selectedTableIds.includes('all')}
                                                     onCheckedChange={(checked) => {
                                                         if (checked) updateSelectedTables(['all']);
                                                         setCurrentPage(0);
                                                     }}
-                                                    className="text-xs font-medium cursor-pointer rounded-sm py-1.5 focus:bg-accent focus:text-accent-foreground"
+                                                    className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3"
                                                 >
                                                     Show All Tables
                                                 </DropdownMenuCheckboxItem>
@@ -336,7 +335,7 @@ export default function ScreenPage() {
                                                             updateSelectedTables(next);
                                                             setCurrentPage(0);
                                                         }}
-                                                        className="text-xs font-medium cursor-pointer rounded-sm py-1.5 focus:bg-accent focus:text-accent-foreground"
+                                                        className="text-lg font-bold uppercase tracking-wide focus:bg-primary/20 cursor-pointer rounded-xl py-3"
                                                     >
                                                         Table {table.number} - {table.name}
                                                     </DropdownMenuCheckboxItem>
@@ -347,132 +346,137 @@ export default function ScreenPage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-sm shadow-primary/20" />
-                                <span className="text-xs font-medium uppercase tracking-wider">Live Update</span>
+                            <div className="flex items-center gap-4">
+                                <div className="w-5 h-5 bg-primary rounded-full animate-pulse shadow-[0_0_20px_rgba(234,88,12,0.8)]" />
+                                <span className="text-2xl font-black uppercase tracking-widest">Live Update</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-6 flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar pb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-14 flex-1 min-h-0 overflow-y-auto pr-6 custom-scrollbar transition-all duration-500 pb-16">
+                        <div className="flex flex-wrap gap-10 flex-1 min-h-0">
                             {displayedTables
                                 .slice(currentPage * displayCount, (currentPage + 1) * displayCount)
                                 .map(table => (
-                                    <div key={table.id} className="flex flex-col gap-4 border border-border rounded-md p-6 bg-card text-card-foreground shadow-sm relative overflow-hidden group min-h-[350px] max-h-[500px]">
-                                        {/* Card Header */}
-                                        <div className="flex justify-between items-center relative z-10 shrink-0">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-md flex items-center justify-center text-primary border border-border bg-muted/50 shrink-0 overflow-hidden">
-                                                    {table.game_image ? (
-                                                        <img src={table.game_image} alt={table.game_type} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <Gamepad2 size={24} />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-baseline gap-2 mb-0.5">
-                                                        <h5 className="text-2xl font-bold tracking-tight">#{table.number}</h5>
-                                                        <p className="text-sm font-bold text-primary">{table.name}</p>
+                                        <div key={table.id} className={cn("flex-1 min-w-[450px] border-2 rounded-[3.5rem] p-8 flex flex-col gap-8 hover:border-primary/20 transition-all backdrop-blur-md relative overflow-hidden group min-h-[450px] max-h-[600px]", isDark ? 'bg-white/[0.02] border-white/5 shadow-2xl' : 'bg-[#EFECE5]/70 border-[#D5D0C8] shadow-lg shadow-black/5')}>
+                                            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                                            {/* Card Header */}
+                                            <div className="flex justify-between items-center relative z-10 shrink-0">
+                                                <div className="flex items-center gap-6">
+                                                    <div className={cn("w-20 h-20 rounded-[1.8rem] flex items-center justify-center text-primary border shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
+                                                        {table.game_image ? (
+                                                            <img src={table.game_image} alt={table.game_type} className="w-full h-full object-cover rounded-[1.8rem]" />
+                                                        ) : (
+                                                            <Gamepad2 size={36} />
+                                                        )}
                                                     </div>
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{table.game_type}</span>
+                                                    <div className="flex items-baseline gap-4 mb-2">
+                                                        <h5 className={cn("text-5xl font-black italic tracking-tighter leading-none", isDark ? 'text-white' : 'text-[#1A1A1A]')}>#{table.number}</h5>
+                                                        <p className="text-2xl font-black uppercase tracking-wide text-primary">{table.name}</p>
+                                                    </div>
+                                                </div>
+                                                <div className={cn("px-5 py-2.5 rounded-2xl border", isDark ? 'bg-white/5 border-white/10' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
+                                                    <span className={cn("text-[10px] font-black uppercase tracking-[0.2em]", isDark ? 'text-white/40' : 'text-[#6B6560]')}>{table.game_type}</span>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Players List */}
-                                        <div className="flex-1 min-h-0 relative z-10">
-                                            {table.players.length === 0 ? (
-                                                <div className="h-full flex flex-col items-center justify-center rounded-md border border-dashed border-border p-6 opacity-60 bg-muted/10">
-                                                    <PlayCircle size={32} className="mb-2 text-muted-foreground/30" />
-                                                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground/40 text-center">Operational Standby</p>
-                                                </div>
-                                            ) : (
-                                                <div className="h-full overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-2">
-                                                    {table.players
-                                                        .sort((a, b) => {
-                                                            const priority = { 'playing': 0, 'notified': 1, 'waiting': 2, 'completed': 3, 'cancelled': 4 };
-                                                            if (priority[a.status] !== priority[b.status]) return (priority[a.status] as number) - (priority[b.status] as number);
-                                                            return a.daily_number - b.daily_number;
-                                                        })
-                                                        .map((player) => (
-                                                            <div
-                                                                key={player.session_id}
-                                                                className={cn(
-                                                                    "flex items-center justify-between py-2.5 px-4 rounded-md border transition-all duration-200",
-                                                                    player.status === 'playing' ? "bg-primary/10 border-primary/30 text-foreground" :
-                                                                        player.status === 'notified' ? "bg-blue-500/10 border-blue-500/30 text-blue-500 animate-pulse" :
-                                                                            "bg-card border-border"
-                                                                )}
-                                                            >
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className={cn(
-                                                                        "w-8 h-8 shrink-0 rounded-md flex items-center justify-center text-xs font-bold bg-muted text-muted-foreground",
-                                                                        player.status === 'playing' && "bg-primary text-primary-foreground"
-                                                                    )}>
-                                                                        {player.status === 'playing' ? '🎮' : `#${player.daily_number}`}
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-bold text-foreground leading-none mb-1">{player.name}</p>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className={cn(
-                                                                                "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border",
-                                                                                player.status === 'playing' ? "bg-primary/20 border-primary/30 text-primary" :
-                                                                                    player.status === 'notified' ? "bg-blue-500/20 border-blue-500/30 text-blue-500" :
-                                                                                        "bg-muted border-border text-muted-foreground"
-                                                                            )}>
-                                                                                {player.status}
-                                                                            </span>
-                                                                            {player.status === 'notified' && (
-                                                                                <div className="flex items-center gap-1 text-blue-500 font-bold">
-                                                                                    <Clock size={10} />
-                                                                                    <span className="text-xs">{player.timer}s</span>
-                                                                                </div>
-                                                                            )}
+                                            {/* Players List - Scrollable with Design Scrollbar */}
+                                            <div className="flex-1 min-h-0 relative z-10">
+                                                {table.players.length === 0 ? (
+                                                    <div className={cn("h-full flex flex-col items-center justify-center rounded-[2.5rem] border-4 border-dashed p-8 opacity-40", isDark ? 'bg-white/[0.01] border-white/5' : 'bg-[#E8E4DC]/50 border-[#D5D0C8]')}>
+                                                        <PlayCircle size={48} className={cn("mb-4", isDark ? "text-white/10" : "text-black/10")} />
+                                                        <p className={cn("text-xl font-black uppercase tracking-[0.2em] italic text-center", isDark ? "text-white/20" : "text-[#1A1A1A]/35")}>Operational Standby</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="h-full overflow-y-auto pr-4 custom-scrollbar flex flex-col gap-3">
+                                                        {table.players
+                                                            .sort((a, b) => {
+                                                                const priority = { 'playing': 0, 'notified': 1, 'waiting': 2, 'completed': 3, 'cancelled': 4 };
+                                                                if (priority[a.status] !== priority[b.status]) return (priority[a.status] as number) - (priority[b.status] as number);
+                                                                return a.daily_number - b.daily_number;
+                                                            })
+                                                            .map((player) => (
+                                                                <div
+                                                                    key={player.session_id}
+                                                                    className={cn(
+                                                                        "flex items-center justify-between py-3.5 px-6 rounded-2xl border-2 transition-all duration-500",
+                                                                        player.status === 'playing' ? "bg-primary/20 border-primary/40 shadow-lg shadow-primary/5" :
+                                                                            player.status === 'notified' ? "bg-blue-500/15 border-blue-500/30 animate-pulse text-blue-400" :
+                                                                                isDark ? "bg-white/[0.03] border-white/5" : "bg-[#E8E4DC]/60 border-[#D5D0C8]"
+                                                                    )}
+                                                                >
+                                                                    <div className="flex items-center gap-5">
+                                                                        <div className={cn(
+                                                                            "w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-sm font-black shadow-md",
+                                                                            player.status === 'playing' ? "bg-primary text-white" : isDark ? "bg-white/10 text-white/40" : "bg-[#D5D0C8] text-[#6B6560]"
+                                                                        )}>
+                                                                            {player.status === 'playing' ? '🎮' : `#${player.daily_number}`}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-xl font-black uppercase tracking-tight leading-none mb-1.5">{player.name}</p>
+                                                                            <div className="flex items-center gap-3">
+                                                                                <span className={cn(
+                                                                                    "text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border",
+                                                                                    player.status === 'playing' ? "bg-primary/20 border-primary/50 text-primary" :
+                                                                                        player.status === 'notified' ? "bg-blue-500/20 border-blue-500/50 text-blue-400" :
+                                                                                            isDark ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-[#1A1A1A]/40"
+                                                                                )}>
+                                                                                    {player.status}
+                                                                                </span>
+                                                                                {player.status === 'notified' && (
+                                                                                    <div className="flex items-center gap-1.5 text-blue-400 font-black">
+                                                                                        <Clock size={12} />
+                                                                                        <span className="text-sm">{player.timer}s</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
 
-                                                                {player.recent_orders.length > 0 && (
-                                                                    <div className="hidden sm:block px-2 py-1 rounded-md border border-border bg-muted/40">
-                                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                                                                            {player.recent_orders[0].name}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            )}
+                                                                    {player.recent_orders.length > 0 && (
+                                                                        <div className={cn("hidden sm:block px-3 py-1.5 rounded-xl border", isDark ? 'bg-white/5 border-white/5' : 'bg-[#E8E4DC] border-[#D5D0C8]')}>
+                                                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", isDark ? "text-white/40" : "text-[#1A1A1A]/50")}>
+                                                                                {player.recent_orders[0].name}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+
+                                                        {/* Bottom spacing for scroll padding */}
+                                                        <div className="h-4 shrink-0" />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
                         </div>
                     </div>
 
                     {/* Pagination Controls */}
                     {displayedTables.length > displayCount && (
-                        <div className="flex justify-center items-center gap-4 mt-6 mb-2 shrink-0">
+                        <div className="flex justify-center gap-8 mt-12 mb-6">
                             <Button
                                 variant="outline"
                                 onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
                                 disabled={currentPage === 0}
-                                className="rounded-md w-10 h-10 border border-border bg-card text-foreground hover:bg-muted transition-colors p-0 flex items-center justify-center"
+                                className={cn("rounded-full w-20 h-20 transition-all border-none", isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-[#E8E4DC] hover:bg-[#D5D0C8] text-[#1A1A1A]')}
                             >
-                                <ChevronLeft size={20} />
+                                <ChevronLeft size={48} />
                             </Button>
-                            <div className="flex items-center gap-2 text-sm font-bold tracking-wider">
+                            <div className="flex items-center gap-4 text-3xl font-black uppercase tracking-[0.3em]">
                                 <span className="text-primary">{currentPage + 1}</span>
-                                <span className="text-muted-foreground/30">/</span>
-                                <span className="text-muted-foreground">{Math.ceil(displayedTables.length / displayCount)}</span>
+                                <span className={cn(isDark ? "text-white/10" : "text-black/10")}>|</span>
+                                <span className={cn(isDark ? "text-white/40" : "text-black/40")}>{Math.ceil(displayedTables.length / displayCount)}</span>
                             </div>
                             <Button
                                 variant="outline"
                                 onClick={() => setCurrentPage(p => Math.min(Math.ceil(displayedTables.length / displayCount) - 1, p + 1))}
                                 disabled={currentPage >= Math.ceil(displayedTables.length / displayCount) - 1}
-                                className="rounded-md w-10 h-10 border border-border bg-card text-foreground hover:bg-muted transition-colors p-0 flex items-center justify-center"
+                                className={cn("rounded-full w-20 h-20 transition-all border-none", isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-[#E8E4DC] hover:bg-[#D5D0C8] text-[#1A1A1A]')}
                             >
-                                <ChevronRight size={20} />
+                                <ChevronRight size={48} />
                             </Button>
                         </div>
                     )}
@@ -488,7 +492,7 @@ export default function ScreenPage() {
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
                     background: ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.12)'};
-                    border-radius: 4px;
+                    border-radius: 10px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                     background: ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
@@ -501,7 +505,7 @@ export default function ScreenPage() {
                 }
                 .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
                     background: rgba(255, 255, 255, 0.05);
-                    border-radius: 4px;
+                    border-radius: 10px;
                 }
             `}</style>
         </div>

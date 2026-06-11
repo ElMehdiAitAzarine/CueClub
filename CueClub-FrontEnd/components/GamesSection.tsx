@@ -65,15 +65,16 @@ export default function GamesSection() {
               viewport={{ once: true }}
               className="flex-shrink-0 w-[85vw] md:w-full snap-center group"
             >
-              <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-[#171717] border border-white/5 transition-colors duration-200 hover:border-white/10">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-[32px] bg-[#171717] border border-white/5 transition-all duration-700 hover:shadow-[0_20px_80px_-15px_rgba(234,88,12,0.15)] group-hover:-translate-y-3">
                 {/* Image Treatment */}
                 <div className="absolute inset-0 z-0">
                   <img
                     src={game.image}
                     alt={game.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-700 scale-100 group-hover:scale-110 blur-0 group-hover:blur-[2px]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/20 to-transparent" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-700 bg-[radial-gradient(circle_at_center,var(--primary-glow),transparent_70%)]" style={{ '--primary-glow': game.color } as any} />
                 </div>
 
                 {/* Content Overlay */}
@@ -95,7 +96,8 @@ export default function GamesSection() {
                   </div>
                 </div>
 
-
+                {/* Glass Border Overlay on Hover */}
+                <div className="absolute inset-0 border-[1px] border-white/0 group-hover:border-white/20 rounded-[32px] transition-all duration-700 pointer-events-none" />
               </div>
             </motion.div>
           ))}

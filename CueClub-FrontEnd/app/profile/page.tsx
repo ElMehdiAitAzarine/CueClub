@@ -158,7 +158,7 @@ export default function ProfilePage() {
             </header>
 
             <main className="max-w-lg mx-auto p-4 space-y-6">
-                <Card className={cn("rounded-md overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
+                <Card className={cn("rounded-3xl overflow-hidden", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
                     <CardHeader className="text-center">
                         <div className="mx-auto mb-4 relative w-24 h-24">
                             <input
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                                     id="firstName"
                                     value={formData.firstName}
                                     onChange={handleInputChange}
-                                    className={cn("rounded-md border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
+                                    className={cn("rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function ProfilePage() {
                                     id="lastName"
                                     value={formData.lastName}
                                     onChange={handleInputChange}
-                                    className={cn("rounded-md border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
+                                    className={cn("rounded-xl border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                 />
                             </div>
                         </div>
@@ -217,7 +217,7 @@ export default function ProfilePage() {
                                     id="phone"
                                     value={formData.phone}
                                     onChange={handleInputChange}
-                                    className={cn("rounded-md pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
+                                    className={cn("rounded-xl pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                 />
                             </div>
                         </div>
@@ -234,7 +234,7 @@ export default function ProfilePage() {
                                             placeholder="••••"
                                             value={formData.password}
                                             onChange={handleInputChange}
-                                            className={cn("rounded-md pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
+                                            className={cn("rounded-xl pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80')}
                                         />
                                     </div>
                                 </div>
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                                             placeholder="••••"
                                             value={formData.confirmPassword}
                                             onChange={handleInputChange}
-                                            className={cn("rounded-md pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80', errors.confirmPassword && "border-destructive border-solid border-2")}
+                                            className={cn("rounded-xl pl-10 border-none focus-visible:ring-1", isDark ? 'bg-white/5' : 'bg-white/80', errors.confirmPassword && "border-destructive border-solid border-2")}
                                         />
                                     </div>
                                 </div>
@@ -259,7 +259,7 @@ export default function ProfilePage() {
                         <Button 
                             onClick={handleSubmit} 
                             disabled={isSubmitting}
-                            className="w-full bg-primary text-black font-black uppercase tracking-widest h-12 rounded-md flex items-center justify-center gap-2"
+                            className="w-full bg-primary text-black font-black uppercase tracking-widest h-12 rounded-2xl flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
                             {t('profile.saveChanges', 'Save Changes')}

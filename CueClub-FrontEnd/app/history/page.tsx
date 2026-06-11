@@ -156,7 +156,11 @@ export default function HistoryPage() {
 
     return (
         <div className={cn("min-h-screen text-foreground selection:bg-primary/30 pb-20", isDark ? 'dark bg-[#0A0A0A]' : 'light-mode bg-[#F7F5F0]')}>
-
+            {/* Ambient Lighting */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-[10%] -left-[10%] w-[45%] h-[45%] bg-primary/5 blur-[130px] rounded-full" />
+                <div className="absolute bottom-[10%] -right-[10%] w-[35%] h-[35%] bg-secondary/5 blur-[130px] rounded-full" />
+            </div>
 
             {/* Header */}
             <header className={cn("sticky top-0 z-50 backdrop-blur-md border-b p-4 flex items-center justify-between gap-4 relative", isDark ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F7F5F0]/90 border-[#D5D0C8]')}>
@@ -191,9 +195,9 @@ export default function HistoryPage() {
             <main className="max-w-xl mx-auto p-4 space-y-6 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 
                 {/* Stats Summary Widget */}
-                <div className={cn("rounded-md p-6 border flex justify-between items-center", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
+                <div className={cn("rounded-3xl p-6 border shadow-lg flex justify-between items-center", isDark ? 'bg-white/5 border-white/10' : 'bg-[#EFECE5] border-[#D5D0C8]')}>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center border border-primary/20">
+                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
                             <Award className="text-primary" size={24} />
                         </div>
                         <div>
@@ -217,7 +221,7 @@ export default function HistoryPage() {
                 </div>
 
                 {error ? (
-                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs p-4 rounded-md flex items-center gap-3">
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs p-4 rounded-2xl flex items-center gap-3">
                         <AlertCircle size={20} />
                         <div>
                             <p className="font-bold">{t('history.errorTitle', 'Access Rejected')}</p>
@@ -237,7 +241,7 @@ export default function HistoryPage() {
                                 {t('history.emptyText', 'You haven\'t joined any gaming queues yet. Scan the club QR and join the action!')}
                             </p>
                         </div>
-                        <Button onClick={() => router.push('/home')} className="bg-primary hover:bg-primary/95 text-black font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-md">
+                        <Button onClick={() => router.push('/home')} className="bg-primary hover:bg-primary/95 text-black font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl">
                             {t('history.joinNow', 'Enter Arena')}
                         </Button>
                     </div>
@@ -254,7 +258,7 @@ export default function HistoryPage() {
                                     <div 
                                         key={session.session_id} 
                                         className={cn(
-                                            "rounded-md p-5 border transition-colors duration-200",
+                                            "rounded-3xl p-5 border shadow-sm transition-all duration-300 hover:translate-y-[-2px] hover:shadow-md",
                                             isDark 
                                                 ? 'bg-white/5 border-white/5 hover:border-white/10' 
                                                 : 'bg-white border-[#D5D0C8] hover:border-[#BFB9AD]'
@@ -262,7 +266,7 @@ export default function HistoryPage() {
                                     >
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="flex items-start gap-3">
-                                                <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center text-2xl border border-primary/10">
+                                                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-2xl border border-primary/10">
                                                     {getGameIcon(session.game_type)}
                                                 </div>
                                                 <div>
